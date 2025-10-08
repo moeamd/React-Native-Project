@@ -1,14 +1,18 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
-import { StyleSheet, Text, View } from 'react-native';
-import AppNavigator from './navigation/AppNavigator';
+ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+ import { NavigationContainer } from '@react-navigation/native';
+ import { StyleSheet, Text, View } from 'react-native';
+ import AppNavigator from './navigation/AppNavigator';
+ import LoginScreen from './screens/LoginScreen';
 
 
 export default function App() {
-  return (
-    <NavigationContainer>
-        <AppNavigator/>
-    </NavigationContainer>
+  return (<>
+  
+    {/* <NavigationContainer>
+    <AppNavigator/> */}
+    {/* </NavigationContainer> */}
+    <LoginScreen/>
+    </>
   );
 }
 
