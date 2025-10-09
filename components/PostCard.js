@@ -23,7 +23,7 @@ const PostCard = () => {
     return (
         <View style={styles.postContainer}>
             <UserCard />
-            
+
             <Text style={styles.postText}>
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fringilla mauris ac id arcu non.
             </Text>
