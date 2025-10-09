@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native'
 import { styles } from '../styles/HomeScreenStyle'
 import axios from 'axios';
-import { launchImageLibrary } from 'react-native-image-picker';
+import * as ImagePicker from "expo-image-picker";
 
 
 const AddPost = () => {

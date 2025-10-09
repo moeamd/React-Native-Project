@@ -1,5 +1,4 @@
 import React from 'react'
-import { View, Text } from 'react-native';
 import { Image, ScrollView, Text, View } from 'react-native'
 import { styles } from '../styles/HomeScreenStyle';
 import StoryCard from '../components/StoryCard.js';
