@@ -24,7 +24,7 @@ export default function AppNavigator() {
   return (
     <Tabs.Navigator>
       <Tabs.Screen
-        name="Home"
+        name="Trend"
         component={HomeScreen}
         options={{
           tabBarIcon: ({ focused, color, size }) => (
