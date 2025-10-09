@@ -3,15 +3,16 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, TouchableOpacity, FlatList } from "react-native";
 import { Card, IconButton, TextInput } from "react-native-paper";
+import { useSelector } from "react-redux";
 
 export const InobxScreen = () => {
   const navigation = useNavigation();
   const [data, setData] = useState([]);
   const [myData, setMyData] = useState([]);
   const [frindsData, setFrindsData] = useState([]);
-  const token =
-    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1vZW1hZDUwNkBnbWFpbC5jb20iLCJpZCI6IjNvWjlNZWczT29tWnhoeDMxY3BGIiwicm9sZSI6InVzZXIiLCJuYW1lIjoibWFtZG91aCIsInVzZXJJbWFnZVVybCI6bnVsbCwiaWF0IjoxNzU5OTcwNzc2LCJleHAiOjE3NjAwNTcxNzZ9.cYvadkeBS4wk6KF8aAYOLuRFk5eu76Ym_ZquBcynoWk";
+  const {user , loading} = useSelector((state)=>state.user )
   const url = "http://localhost:5000/api/chats";
+  const token = localStorage.getItem('token')
   const getMyId = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/users/me", {
@@ -98,7 +99,7 @@ console.log(mergeData);
         underlineColor="#2ca0e8ff"
       />
 
-        <View style={{ height: "90%" }}>
+        <View style={{ flex: 1 }}>
           <FlatList
             data={mergeData}
             keyExtractor={(item) => item.id}

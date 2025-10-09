@@ -1,11 +1,16 @@
+import axios from 'axios';
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUser } from '../Redux/userSlcie';
 
-const LoginScreen = () => {
+const LoginScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('SignIn');
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const dispatch = useDispatch()
+  
 
   const validate = () => {
     const newErrors = {};
@@ -27,9 +32,17 @@ const LoginScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = () => {
+
+
+  const handleLogin =async () => {
     if (validate()) {
-      console.log('Login successful!');
+      const res = await axios.post('http://localhost:5000/api/auth/login',
+        {email:emailOrPhone , password:password}
+      )
+      // console.log(res.data.token);
+      dispatch(fetchUser(res.data.token));
+      localStorage.setItem('token',res.data.token)
+      navigation.replace("Main");
     }
   };
 
