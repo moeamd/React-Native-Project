@@ -2,12 +2,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { StyleSheet, Text, View } from 'react-native';
 import AppNavigator from './navigation/AppNavigator';
+import RegisterScreen from "./screens/RegisterScreen";
 
 
 export default function App() {
   return (
     <NavigationContainer>
-        <AppNavigator/>
+        {/* <AppNavigator/> */}
+        <RegisterScreen />;
     </NavigationContainer>
   );
 }
