@@ -5,6 +5,10 @@ import LoginScreen from "./screens/LoginScreen";
 import { StyleSheet, Text, View } from "react-native";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
+import RegisterScreen from "./screens/RegisterScreen";
+import { AuthScreen } from "./screens/authScreen";
+
+
 const Stack = createNativeStackNavigator();
 
 
@@ -13,7 +17,7 @@ export default function App() {
     <NavigationContainer>
       <Provider store={store}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="auth" component={AuthScreen} />
         <Stack.Screen name="Main" component={AppNavigator} />
       </Stack.Navigator>
       </Provider>

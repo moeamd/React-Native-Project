@@ -97,7 +97,7 @@ export default function RegisterScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <View style={styles.logoContainer}>
           <View style={styles.iconCircle}>
             <Ionicons
@@ -116,7 +116,7 @@ export default function RegisterScreen() {
           <Text style={[styles.tab, { color: "#888" }]}>Sign in</Text>
           <Text style={[styles.tab, styles.activeTab]}>Sign up</Text>
         </View>
-      </View>
+      </View> */}
 
       {/* Form */}
       <View style={styles.form}>

@@ -49,7 +49,7 @@ const LoginScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       
-      {/* Tabs */}
+      {/* Tabs
       <View style={styles.tabs}>
         <TouchableOpacity onPress={() => setActiveTab('SignIn')}>
           <Text style={[styles.tabText, activeTab === 'SignIn' && styles.activeTab]}>
@@ -62,7 +62,7 @@ const LoginScreen = ({ navigation }) => {
             Sign up
           </Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       {/* Email/Phone Input */}
       <TextInput
