@@ -4,8 +4,22 @@ import { HomeScreen } from "../screens/HomeScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { FollowScreen } from "../screens/FollowScreen";
 import { ChatScreen } from "../screens/ChatScreen";
+import { InobxScreen } from "../screens/InobxScreen";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+
+const InboxStack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
+
+
+function InboxStackScreen() {
+  return (
+    <InboxStack.Navigator screenOptions={{ headerShown: false }}>
+      <InboxStack.Screen name="InboxList" component={InobxScreen} />
+      <InboxStack.Screen name="ChatScreen" component={ChatScreen} />
+    </InboxStack.Navigator>
+  );
+}
 export default function AppNavigator() {
   return (
     <Tabs.Navigator>
@@ -24,8 +38,8 @@ export default function AppNavigator() {
       />
 
       <Tabs.Screen
-        name="Chats"
-        component={ChatScreen}
+        name="Inbox"
+        component={InboxStackScreen}
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
