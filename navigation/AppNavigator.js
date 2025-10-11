@@ -6,11 +6,13 @@ import { FollowScreen } from "../screens/FollowScreen";
 import { ChatScreen } from "../screens/ChatScreen";
 import { InobxScreen } from "../screens/InobxScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { useEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
 
 const InboxStack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
-
 
 function InboxStackScreen() {
   return (
@@ -21,6 +23,24 @@ function InboxStackScreen() {
   );
 }
 export default function AppNavigator() {
+   const navigation = useNavigation();
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const res = await axios.get("http://localhost:5000/api/users/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (error) {
+        if (error.response?.status === 401) {
+          await AsyncStorage.removeItem("token");
+          navigation.replace("auth");
+        }
+      }
+    };
+    return check();
+  },[]);
+
   return (
     <Tabs.Navigator>
       <Tabs.Screen
