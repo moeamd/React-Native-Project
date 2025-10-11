@@ -19,6 +19,7 @@ export default function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="auth" component={AuthScreen} />
         <Stack.Screen name="Main" component={AppNavigator} />
+        
       </Stack.Navigator>
       </Provider>
     </NavigationContainer>

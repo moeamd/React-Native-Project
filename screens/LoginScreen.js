@@ -1,21 +1,25 @@
-import axios from 'axios';
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUser } from '../Redux/userSlcie';
+import { loginUser } from '../Redux/authSlice'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = ({ navigation }) => {
-  const [activeTab, setActiveTab] = useState('SignIn');
-  const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState('')
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
-  const dispatch = useDispatch()
-  
 
+  const dispatch = useDispatch();
+
+  //  Redux store
+  const { loading, error } = useSelector(state => state.auth);
+
+  
   const validate = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\+?\d{7,15}$/; 
+    const phoneRegex = /^\+?\d{7,15}$/;
+
     if (!emailOrPhone) {
       newErrors.emailOrPhone = 'Email or Phone is required';
     } else if (!emailRegex.test(emailOrPhone) && !phoneRegex.test(emailOrPhone)) {
@@ -32,48 +36,35 @@ const LoginScreen = ({ navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  
+  const handleLogin = async () => {
+    if (!validate()) return;
 
+    try {
+      const resultAction = await dispatch(loginUser({ email: emailOrPhone, password }));
 
-  const handleLogin =async () => {
-    if (validate()) {
-      const res = await axios.post('http://localhost:5000/api/auth/login',
-        {email:emailOrPhone , password:password}
-      )
-      // console.log(res.data.token);
-      dispatch(fetchUser(res.data.token));
-      localStorage.setItem('token',res.data.token)
-      navigation.replace("Main");
+      if (loginUser.fulfilled.match(resultAction)) {
+        const token = resultAction.payload.token;
+        await AsyncStorage.setItem('token', token); // token store
+        navigation.replace('Main'); // go to main after token
+      } else {
+        // error from asyncThunk
+        console.log('Login failed:', resultAction.payload || resultAction.error.message);
+      }
+    } catch (err) {
+      console.log('Login error:', err);
     }
   };
 
   return (
     <View style={styles.container}>
-      
-      {/* Tabs
-      <View style={styles.tabs}>
-        <TouchableOpacity onPress={() => setActiveTab('SignIn')}>
-          <Text style={[styles.tabText, activeTab === 'SignIn' && styles.activeTab]}>
-            Sign in
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => setActiveTab('SignUp')}>
-          <Text style={[styles.tabText, activeTab === 'SignUp' && styles.activeTab]}>
-            Sign up
-          </Text>
-        </TouchableOpacity>
-      </View> */}
-
-      {/* Email/Phone Input */}
       <TextInput
         style={[styles.input, errors.emailOrPhone && { borderColor: 'red' }]}
         placeholder="Email or Phone"
         value={emailOrPhone}
         onChangeText={setEmailOrPhone}
       />
-      {errors.emailOrPhone && <Text style={styles.errorText}>{errors.emailOrPhone}</Text>}
-
-      {/* Password Input */}
+      {errors.emailOrPhone && <Text style={styles.errorText}>{errors.emailOrPhone}</Text>};
       <TextInput
         style={[styles.input, errors.password && { borderColor: 'red' }]}
         placeholder="Password"
@@ -83,21 +74,14 @@ const LoginScreen = ({ navigation }) => {
       />
       {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
-      {/* Login Button */}
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
       </TouchableOpacity>
 
-      {/* Forgot password as button */}
-      <TouchableOpacity style={styles.forgotButton} onPress={() => console.log('Forgot Password')}>
-        <Text style={styles.forgotText}>Forgot Password?</Text>
-      </TouchableOpacity>
-
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
-};
-
-export default LoginScreen;
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -106,21 +90,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 80,
     paddingHorizontal: 20,
-  },
-  tabs: {
-    flexDirection: 'row',
-    marginBottom: 30,
-  },
-  tabText: {
-    fontSize: 18,
-    color: '#999',
-    marginHorizontal: 10,
-    fontWeight: '500',
-  },
-  activeTab: {
-    color: '#007AFF',
-    borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
   },
   input: {
     width: '100%',
@@ -145,15 +114,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  forgotButton: {
-    marginTop: 12,
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  forgotText: {
-    color: '#007AFF',
-    fontSize: 14,
-  },
   errorText: {
     color: 'red',
     fontSize: 13,
@@ -161,3 +121,5 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
 });
+
+export default LoginScreen;
