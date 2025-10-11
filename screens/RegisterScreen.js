@@ -8,6 +8,9 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import axios from "axios"; 
+import * as ImagePicker from "expo-image-picker";
+import { useNavigation } from "@react-navigation/native";
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState("");
@@ -15,6 +18,7 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [image, setImage] = useState(null); 
 
   const [errors, setErrors] = useState({
     usernameErr: "",
@@ -23,6 +27,8 @@ export default function RegisterScreen() {
     passwordErr: "",
     confirmPasswordErr: "",
   });
+
+  const navigation = useNavigation(); 
 
   // static usernames to simulate API
   const existingUsernames = ["nada123", "ahmed", "mohamed98", "userTest"];
@@ -37,7 +43,6 @@ export default function RegisterScreen() {
       confirmPasswordErr: "",
     };
 
-    // Username validation
     if (username.length === 0) {
       tempErrors.usernameErr = "Username is required";
       valid = false;
@@ -49,7 +54,6 @@ export default function RegisterScreen() {
       valid = false;
     }
 
-    // Full name validation
     if (fullName.length === 0) {
       tempErrors.fullNameErr = "Full name is required";
       valid = false;
@@ -58,7 +62,6 @@ export default function RegisterScreen() {
       valid = false;
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (email.length === 0) {
       tempErrors.emailErr = "Email is required";
@@ -68,7 +71,6 @@ export default function RegisterScreen() {
       valid = false;
     }
 
-    // Password validation
     if (password.length === 0) {
       tempErrors.passwordErr = "Password is required";
       valid = false;
@@ -77,7 +79,6 @@ export default function RegisterScreen() {
       valid = false;
     }
 
-    // Confirm password validation
     if (confirmPassword.length === 0) {
       tempErrors.confirmPasswordErr = "Please confirm your password";
       valid = false;
@@ -90,35 +91,54 @@ export default function RegisterScreen() {
     return valid;
   };
 
-  const handleRegister = () => {
-    validate();
+  // Pick image
+  const handlePickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  //Send data to backend
+  const handleRegister = async () => {
+    if (!validate()) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("username", username);
+      formData.append("name", fullName);
+      formData.append("email", email);
+      formData.append("password", password);
+
+      if (image) {
+        formData.append("image", {
+          uri: image,
+          type: "image/jpeg",
+          name: "profile.jpg",
+        });
+      }
+
+      await axios.post("http://localhost:5000/api/auth/register", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      navigation.navigate("login"); //move to login screen
+    } catch (error) {
+      setErrors((prev) => ({
+        ...prev,
+        emailErr:
+          error.response?.data?.message ||
+          "Registration failed. Please try again.",
+      }));
+    }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
-      {/* <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <View style={styles.iconCircle}>
-            <Ionicons
-              name="chatbubble-ellipses-outline"
-              size={28}
-              color="#00aaff"
-            />
-          </View>
-          <Text style={styles.logoText}>
-            <Text style={{ color: "#000", fontWeight: "700" }}>SOCIAL </Text>
-            <Text style={{ color: "#00aaff", fontWeight: "700" }}>MATE</Text>
-          </Text>
-        </View>
-
-        <View style={styles.tabContainer}>
-          <Text style={[styles.tab, { color: "#888" }]}>Sign in</Text>
-          <Text style={[styles.tab, styles.activeTab]}>Sign up</Text>
-        </View>
-      </View> */}
-
-      {/* Form */}
       <View style={styles.form}>
         <TextInput
           style={[styles.input, errors.usernameErr ? styles.inputError : null]}
@@ -131,10 +151,7 @@ export default function RegisterScreen() {
         ) : null}
 
         <TextInput
-          style={[
-            styles.input,
-            errors.fullNameErr ? styles.inputError : null,
-          ]}
+          style={[styles.input, errors.fullNameErr ? styles.inputError : null]}
           placeholder="Your Full Name"
           value={fullName}
           onChangeText={setFullName}
@@ -179,6 +196,16 @@ export default function RegisterScreen() {
           <Text style={styles.errorText}>{errors.confirmPasswordErr}</Text>
         ) : null}
 
+        {/*Pick image */}
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: "#ccc" }]}
+          onPress={handlePickImage}
+        >
+          <Text style={styles.buttonText}>
+            {image ? "Image Selected " : "Select Profile Image"}
+          </Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.button} onPress={handleRegister}>
           <Text style={styles.buttonText}>Sign up</Text>
         </TouchableOpacity>
@@ -194,46 +221,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 50,
     backgroundColor: "#fff",
-  },
-  header: {
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  logoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 15,
-  },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#e6f7ff",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-  logoText: {
-    fontSize: 24,
-  },
-  tabContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 25,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  tab: {
-    fontSize: 16,
-    marginHorizontal: 15,
-    paddingBottom: 5,
-  },
-  activeTab: {
-    color: "#00aaff",
-    borderBottomWidth: 2,
-    borderBottomColor: "#00aaff",
   },
   form: {
     width: "85%",
@@ -268,3 +255,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
