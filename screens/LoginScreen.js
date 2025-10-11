@@ -1,72 +1,74 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginUser } from '../Redux/authSlice'; 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../Redux/authSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
-const LoginScreen = ({ navigation }) => {
-  const [emailOrPhone, setEmailOrPhone] = useState('')
-  const [password, setPassword] = useState('');
+const LoginScreen = () => {
+  const navigation = useNavigation();
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
 
   const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
 
-  //  Redux store
-  const { loading, error } = useSelector(state => state.auth);
-
-  
   const validate = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\+?\d{7,15}$/;
 
     if (!emailOrPhone) {
-      newErrors.emailOrPhone = 'Email or Phone is required';
+      newErrors.emailOrPhone = "Email or Phone is required";
     } else if (!emailRegex.test(emailOrPhone) && !phoneRegex.test(emailOrPhone)) {
-      newErrors.emailOrPhone = 'Enter a valid Email or Phone';
+      newErrors.emailOrPhone = "Enter a valid Email or Phone";
     }
 
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  
   const handleLogin = async () => {
     if (!validate()) return;
 
     try {
-      const resultAction = await dispatch(loginUser({ email: emailOrPhone, password }));
+      const resultAction = await dispatch(
+        loginUser({ email: emailOrPhone, password })
+      );
 
       if (loginUser.fulfilled.match(resultAction)) {
         const token = resultAction.payload.token;
-        await AsyncStorage.setItem('token', token); // token store
-        navigation.replace('Main'); // go to main after token
+        await AsyncStorage.setItem("token", token);
+        navigation.replace("Main");
       } else {
-        // error from asyncThunk
-        console.log('Login failed:', resultAction.payload || resultAction.error.message);
+        console.log("Login failed:", resultAction.payload || resultAction.error.message);
       }
     } catch (err) {
-      console.log('Login error:', err);
+      console.log("Login error:", err);
     }
   };
 
   return (
     <View style={styles.container}>
       <TextInput
-        style={[styles.input, errors.emailOrPhone && { borderColor: 'red' }]}
+        style={[styles.input, errors.emailOrPhone && { borderColor: "red" }]}
         placeholder="Email or Phone"
         value={emailOrPhone}
         onChangeText={setEmailOrPhone}
       />
-      {errors.emailOrPhone && <Text style={styles.errorText}>{errors.emailOrPhone}</Text>};
+      {errors.emailOrPhone && (
+        <Text style={styles.errorText}>{errors.emailOrPhone}</Text>
+      )}
+
       <TextInput
-        style={[styles.input, errors.password && { borderColor: 'red' }]}
+        style={[styles.input, errors.password && { borderColor: "red" }]}
         placeholder="Password"
         secureTextEntry
         value={password}
@@ -74,50 +76,56 @@ const LoginScreen = ({ navigation }) => {
       />
       {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Logging in..." : "Login"}
+        </Text>
       </TouchableOpacity>
 
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FBFF',
-    alignItems: 'center',
+    backgroundColor: "#F9FBFF",
+    alignItems: "center",
     paddingTop: 80,
     paddingHorizontal: 20,
   },
   input: {
-    width: '100%',
+    width: "100%",
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
     marginBottom: 10,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   button: {
-    backgroundColor: '#007AFF',
-    width: '100%',
+    backgroundColor: "#007AFF",
+    width: "100%",
     padding: 14,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   errorText: {
-    color: 'red',
+    color: "red",
     fontSize: 13,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     marginBottom: 5,
   },
 });

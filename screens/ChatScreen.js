@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -17,9 +18,17 @@ export const ChatScreen = ({ route }) => {
   const flatListRef = useRef(null);
   // console.log(id);
   // console.log(data);
-  const token =
-    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1vZW1hZDUwNEBnbWFpbC5jb20iLCJpZCI6IlhUd28xb24wMThRMkhhT1dXd2d0Iiwicm9sZSI6InVzZXIiLCJuYW1lIjoiUm9zaGR5IiwidXNlckltYWdlVXJsIjpudWxsLCJpYXQiOjE3NjAwMjI5MzAsImV4cCI6MTc2MDEwOTMzMH0.HDqeuiI2s3P-VvJxPKoGIscARMaVe21gNO8vWY7rKnk";
-
+//   const getToken = async () => {
+//   try {
+//     const token = await AsyncStorage.getItem("token");
+//     if (token !== null) {
+//       console.log("Token:", token);
+//       return token;
+//     }
+//   } catch (error) {
+//     console.log("Error getting token", error);
+//   }
+// };
   // const item = data.map((i)=> {
   //   // if (i.senderId === id) {
   //   //   console.log("From Me");
@@ -32,9 +41,10 @@ export const ChatScreen = ({ route }) => {
   // get messages
   const fetchMessages = async () => {
     try {
+      const token = await AsyncStorage.getItem("token");
       const res = await axios.get(
         `http://localhost:5000/api/chats/${chatId}/messages`,
-        { headers: { Authorization: token } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       // console.log("API Response:", res.data);
       setData(res.data || []);
@@ -46,10 +56,11 @@ export const ChatScreen = ({ route }) => {
   // send Messages
   const sendMessage = async () => {
     try {
+      const token = await AsyncStorage.getItem("token");
       const res = await axios.post(
         `http://localhost:5000/api/chats/${chatId}/messages`,
         { text: message },
-        { headers: { Authorization: token } }
+        {headers: { Authorization: `Bearer ${token}` }}
       );
       setData((prev) => [...prev, res.data]);
 
@@ -63,6 +74,7 @@ export const ChatScreen = ({ route }) => {
   };
 
   useEffect(() => {
+    
     fetchMessages();
   }, []);
 
