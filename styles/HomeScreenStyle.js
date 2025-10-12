@@ -124,6 +124,19 @@ export const styles = StyleSheet.create({
         backgroundColor: '#ddd',
         marginBottom: 4
     },
+    menuDropDown: {
+        position: 'absolute',
+        top: 45, // adjust based on icon size
+        right: 0,
+        width: 100,
+        backgroundColor: 'white',
+        borderRadius: 8,
+        elevation: 5,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 10,
+        zIndex: 50
+    }
 });
 
 

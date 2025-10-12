@@ -5,12 +5,12 @@ import { styles } from '../styles/HomeScreenStyle'
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import { token } from '../screens/HomeScreen';
+import { myLocalHost } from '../localHost';
 
 const AddPost = () => {
 
     const [postText, setPostText] = useState('');
-    const [image, setImage] = useState('');
+    const [image, setImage] = useState(null);
 
     const uploadImage = async () => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -38,8 +38,8 @@ const AddPost = () => {
     };
 
     const handleSubmitPost = async () => {
-        const formData = new FormData();
 
+        const formData = new FormData();
         formData.append('title', 'Your title');
         formData.append('content', postText);
 
@@ -56,11 +56,9 @@ const AddPost = () => {
 
 
         try {
-            const response = await axios.post('http://192.168.11.174:5000/api/posts', formData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data',
-                },
+            const token = await AsyncStorage.getItem("token");
+            const response = await axios.post(`http://${myLocalHost}:5000/api/posts`, formData, {
+                headers: {Authorization: `Bearer ${token}`},
             });
 
             console.log('✅ Post submitted:', response.data);

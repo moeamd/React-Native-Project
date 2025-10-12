@@ -1,0 +1,1 @@
+export const myLocalHost = "192.168.11.174";

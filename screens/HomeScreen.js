@@ -7,18 +7,16 @@ import AddPost from '../components/AddPost.js';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFiZHVsbGFoYWFidWt1ZmZhQGdtYWlsLmNvbSIsImlkIjoidmthZzRPQnhIN2hsUmt5Wms0dFYiLCJyb2xlIjoidXNlciIsIm5hbWUiOiJBYmR1bGxhaCBBYmRlbEdoYWZmYXIiLCJ1c2VySW1hZ2VVcmwiOm51bGwsImlhdCI6MTc2MDI2NTc4MSwiZXhwIjoxNzYwMzUyMTgxfQ.TsChav2Nu0LPuh_yn9fwbpEVnr25jNXVVYL4HM7Q1J8';
 export const HomeScreen = () => {
   const [posts, setPosts] = useState([]);
-
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
+         const token = await AsyncStorage.getItem("token");
         //192.168.11.174
-        const response = await axios.get('http://192.168.11.174:5000/api/posts', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await axios.get(`http://${myLocalHost}:5000/api/posts`, {
+          headers: { Authorization: `Bearer ${token}`, },
         });
 
         setPosts(response.data)
@@ -42,7 +40,7 @@ export const HomeScreen = () => {
             style={styles.storyCircle}
           />
           <Text style={styles.storyText}>add Story</Text>
-        
+
         </View>
 
         {['Jone', 'Smith', 'Kriston', 'Kriston', "Kriston", "Kriston", "Kriston"].map((name, index) => (

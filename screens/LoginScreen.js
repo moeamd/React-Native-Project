@@ -6,8 +6,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { fetchUser } from "../Redux/userSlcie";
+import { myLocalHost } from "./HomeScreen";
 
-const LoginScreen = ({setIsLoggedIn }) => {
+const LoginScreen = ({ setIsLoggedIn }) => {
   const navigation = useNavigation();
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +23,7 @@ const LoginScreen = ({setIsLoggedIn }) => {
     const phoneRegex = /^\+?\d{7,15}$/;
 
     if (!emailOrPhone) {
-      newErrors.emailOrPhone = "Email or Phone is required";
+      newErrors.emailOrPhone = "Email is required";
     } else if (!emailRegex.test(emailOrPhone) && !phoneRegex.test(emailOrPhone)) {
       newErrors.emailOrPhone = "Enter a valid Email or Phone";
     }
@@ -40,18 +41,18 @@ const LoginScreen = ({setIsLoggedIn }) => {
   const handleLogin = async () => {
 
     try {
-            if (validate()) {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
-        email: emailOrPhone,
-        password: password,
-      });
-      dispatch(fetchUser(res.data.token));
-      await AsyncStorage.setItem("token", res.data.token);
-      setIsLoggedIn(true)
-    }
-    }catch (err) {
+      if (validate()) {
+        const res = await axios.post(`http://${myLocalHost}:5000/api/auth/login`, {
+          email: emailOrPhone,
+          password: password,
+        });
+        dispatch(fetchUser(res.data.token));
+        await AsyncStorage.setItem("token", res.data.token);
+        setIsLoggedIn(true)
+      }
+    } catch (err) {
       console.log("from Login", err);
-      
+
     }
 
   };
@@ -60,7 +61,7 @@ const LoginScreen = ({setIsLoggedIn }) => {
     <View style={styles.container}>
       <TextInput
         style={[styles.input, errors.emailOrPhone && { borderColor: "red" }]}
-        placeholder="Email or Phone"
+        placeholder="Email"
         value={emailOrPhone}
         onChangeText={setEmailOrPhone}
       />

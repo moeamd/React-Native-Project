@@ -5,13 +5,13 @@ import { styles } from '../styles/HomeScreenStyle'
 import CommentCard from './CommentCard';
 import UserCard from './UserCard';
 import axios from 'axios';
-import { token } from '../screens/HomeScreen';
+import { myLocalHost } from '../localHost';
+import * as Clipboard from 'expo-clipboard';
 
 const PostCard = ({ post }) => {
 
     const [menuVisible, setMenuVisible] = useState(false);
     const [showCommentBox, setShowCommentBox] = useState(false);
-
     const [commentText, setCommentText] = useState('');
 
     const handleCommentPress = () => {
@@ -20,16 +20,11 @@ const PostCard = ({ post }) => {
 
     const handleSubmitComment = async () => {
         try {
+            const token = await AsyncStorage.getItem("token");
             const response = await axios.post(
-                `http://192.168.11.174:5000/api/comments/${post.id}`,
-                
+                `http://${myLocalHost}:5000/api/comments/${post.id}`,
                 { content: commentText }, // plain JSON body
-                
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                { headers: { Authorization: `Bearer ${token}`, }, }
             );
 
             console.log('Comment submitted:', response.data);
@@ -45,10 +40,88 @@ const PostCard = ({ post }) => {
             }
         }
     };
+    const handleUpdatePost = async (post) => {
+        try {
+            // Get saved token
+            const token = await AsyncStorage.getItem("token");
 
-    const handleLikePress = () => {
+            const response = await axios.put(
+                `http://${myLocalHost}:5000/api/posts/${post._id}`,
+                {
+                    title: post.title,
+                    content: post.content,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            )
+            console.log("Post updated successfully:", response.data);
+
+
+        } catch (error) {
+            console.error("Error updating post:", error.message);
+        }
+    };
+
+    const handleCopyLink = async (postId) => {
+        try {
+            const postLink = `http://${myLocalHost}:5000/posts/${postId}`;
+            await Clipboard.setStringAsync(postLink);
+            Alert.alert("Link Copied", "The post link has been copied to your clipboard!");
+        } catch (error) {
+            console.error("Error copying link:", error.message);
+        }
+    };
+
+    const handleDeletePost = async (postId) => {
+        try {
+            // Get token from AsyncStorage
+            const token = await AsyncStorage.getItem("token");
+
+            // Send delete request
+            const response = await axios.delete(
+                `http://${myLocalHost}:5000/api/posts/${postId}`,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            console.log("Post deleted successfully:", response.data);
+
+        } catch (error) {
+            console.error("Error deleting post:", error.message);
+        }
+    }
+
+    const handleReportPost = () => {
 
     }
+
+    const [comments, setComments] = useState([]);
+    const postId = post.id;
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                //192.168.11.174
+                console.log('Fetching comments for postId:', post.Id);
+                const token = await AsyncStorage.getItem("token");
+                const response = await axios.get(`http://${myLocalHost}:5000/api/comments/${postId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                setComments(response.data)
+                console.log(comments)
+            } catch (error) {
+                console.error('Error geting comments:', error.message);
+            }
+        }
+        fetchData();
+    }, [postId])
+
     return (
         <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
             <View style={[styles.postContainer, { position: 'relative' }]}>
@@ -61,20 +134,8 @@ const PostCard = ({ post }) => {
                         />
                     </TouchableOpacity>
                     {menuVisible && (
-                        <View 
-                        style={{
-                            position: 'absolute',
-                            top: 45, // adjust based on icon size
-                            right: 0,
-                            width: 100,
-                            backgroundColor: 'white',
-                            borderRadius: 8,
-                            elevation: 5,
-                            borderWidth: 1,
-                            borderColor: '#ccc',
-                            padding: 10,
-                            zIndex: 50
-                        }}>
+                        <View
+                            style={styles.menuDropDown}>
                             <TouchableOpacity onPress={() => {
                                 handleUpdatePost(post);
                                 setMenuVisible(false);
@@ -121,7 +182,7 @@ const PostCard = ({ post }) => {
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={handleCommentPress}>
-                        <Text>💬 135</Text>
+                        <Text>💬 {comments.length} </Text>
                     </TouchableOpacity>
 
                     <Text>🔄 Share</Text>
