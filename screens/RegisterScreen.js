@@ -122,7 +122,7 @@ export default function RegisterScreen() {
         });
       }
 
-      await axios.post("http://localhost:5000/api/auth/register", formData, {
+      await axios.post("http://10.210.20.39:5000/api/auth/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

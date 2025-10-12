@@ -6,7 +6,6 @@ import PostCard from '../components/PostCard.js';
 import AddPost from '../components/AddPost.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 export const HomeScreen = () => {
 
   return (
@@ -19,7 +18,7 @@ export const HomeScreen = () => {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.storySection}>
         <View style={styles.storyItem}>
           <Image
-            source={require('..')}
+            source={user.imageUrl}
             style={styles.storyCircle}
           />
           <Text style={styles.storyText}>add St</Text>

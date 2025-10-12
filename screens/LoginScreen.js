@@ -36,23 +36,25 @@ const LoginScreen = () => {
   };
 
   const handleLogin = async () => {
-    if (!validate()) return;
 
     try {
-      const resultAction = await dispatch(
-        loginUser({ email: emailOrPhone, password })
-      );
-
-      if (loginUser.fulfilled.match(resultAction)) {
-        const token = resultAction.payload.token;
-        await AsyncStorage.setItem("token", token);
-        navigation.replace("Main");
-      } else {
-        console.log("Login failed:", resultAction.payload || resultAction.error.message);
-      }
-    } catch (err) {
-      console.log("Login error:", err);
+            if (validate()) {
+      const res = await axios.post("http://10.150.220.39:5000/api/auth/login", {
+        email: emailOrPhone,
+        password: password,
+      });
+      dispatch(fetchUser(res.data.token));
+      await AsyncStorage.setItem("token", res.data.token);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Main" }],
+      });
     }
+    }catch (err) {
+      console.log("from Login", err);
+      
+    }
+
   };
 
   return (
