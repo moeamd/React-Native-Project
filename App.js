@@ -8,18 +8,16 @@ import { store } from "./store/store";
 import RegisterScreen from "./screens/RegisterScreen";
 import { AuthScreen } from "./screens/authScreen";
 
-
 const Stack = createNativeStackNavigator();
-
 
 export default function App() {
   return (
     <NavigationContainer>
       <Provider store={store}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Main" component={AppNavigator} />
-        <Stack.Screen name="auth" component={AuthScreen} />
-      </Stack.Navigator>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Main" component={AppNavigator} />
+          <Stack.Screen name="auth" component={AuthScreen} />
+        </Stack.Navigator>
       </Provider>
     </NavigationContainer>
   );
@@ -33,5 +31,3 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
-
-
