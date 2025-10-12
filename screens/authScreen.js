@@ -4,7 +4,7 @@ import RegisterScreen from "./RegisterScreen";
 import LoginScreen from "./LoginScreen";
 import { Ionicons } from "@expo/vector-icons";
 
-export const AuthScreen = () => {
+export const AuthScreen = ({setIsLoggedIn }) => {
   const [activeTab, setActiveTab] = useState("SignIn");
 
   return (
@@ -49,7 +49,7 @@ export const AuthScreen = () => {
       </View>
 
       <View style={{ flex: 1, width: "100%" }}>
-        {activeTab === "SignIn" ? <LoginScreen /> : <RegisterScreen />}
+        {activeTab === "SignIn" ? <LoginScreen  setIsLoggedIn={setIsLoggedIn} /> : <RegisterScreen />}
       </View>
     </View>
   );

@@ -6,21 +6,21 @@ export const styles = StyleSheet.create({
         backgroundColor: '#fff'
     },
     postSection: {
-        marginBottom: 16, 
+        marginBottom: 16,
         padding: 10,
         justifyContent: 'space-between',
         borderRadius: 8,
         backgroundColor: '#e9f7fc',
-        height: 100
+        height: 'auto'
     },
     postAddContent: {
         flexDirection: 'row',
         justifyContent: 'space-between'
     },
     postInput: {
-        padding: 10, 
+        padding: 10,
         marginBottom: 8,
-        width: '100%'
+        width: "auto",
     },
     previewImage: {
         width: '100%',
@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
         fontSize: 12
     },
     postContainer: {
-        marginBottom: 24,
+        marginBottom: 20,
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 8,
@@ -64,7 +64,7 @@ export const styles = StyleSheet.create({
     },
     postNameTime: {
         flexDirection: 'column',
-        marginBottom: 4, 
+        marginBottom: 4,
         padding: 10
     },
     postAuthor: {
@@ -73,11 +73,13 @@ export const styles = StyleSheet.create({
     postText: {
         marginBottom: 8,
         paddingLeft: 5,
+        zIndex: -1,
         paddingRight: 5
     },
     postImage: {
         width: '100%',
         height: 200,
+        zIndex: -1,
         borderRadius: 8,
         marginBottom: 8
     },
@@ -105,7 +107,8 @@ export const styles = StyleSheet.create({
         color: '#3faeda',
         fontWeight: 'bold',
         textAlign: 'right',
-        marginVertical: 'auto'
+        marginVertical: 'auto',
+        fontSize: 24
     },
 
     noBorder: {
@@ -115,8 +118,11 @@ export const styles = StyleSheet.create({
         elevation: 0,         // Android
     },
     userCircle: {
-        width: 40, height: 40, borderRadius: 30,
-        backgroundColor: '#ddd', marginBottom: 4
+        width: 40,
+        height: 40,
+        borderRadius: 30,
+        backgroundColor: '#ddd',
+        marginBottom: 4
     },
 });
 

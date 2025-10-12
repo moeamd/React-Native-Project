@@ -7,27 +7,16 @@ import { Provider } from "react-redux";
 import { store } from "./store/store";
 import RegisterScreen from "./screens/RegisterScreen";
 import { AuthScreen } from "./screens/authScreen";
+import RootNavigator from "./navigation/RootNavigator";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <NavigationContainer>
       <Provider store={store}>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Main" component={AppNavigator} />
-          <Stack.Screen name="auth" component={AuthScreen} />
-        </Stack.Navigator>
+        <RootNavigator />
       </Provider>
-    </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+

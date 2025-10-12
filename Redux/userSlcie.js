@@ -8,7 +8,7 @@ export const fetchUser = createAsyncThunk("user/me", async (token , {rejectWithV
     });
     return res.data;
   } catch (err) {
-     if (err.response && err.response.data) {
+    if (err.response && err.response.data) {
         return rejectWithValue(err.response.data);
       }
       return rejectWithValue(err.message);

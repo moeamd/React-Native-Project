@@ -1,34 +1,40 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from "react-native";
 import { Avatar, Card, TextInput } from "react-native-paper";
+import { useSelector } from "react-redux";
 
 export const ChatScreen = ({ route }) => {
   const [message, setMessage] = useState("");
   const [data, setData] = useState([]);
+  console.log(data);
+  
   const { id, name, age, image, chatId } = route.params;
   const flatListRef = useRef(null);
+  const {user , loading} = useSelector((state)=>state.user)
+
   // console.log(id);
   // console.log(data);
-//   const getToken = async () => {
-//   try {
-//     const token = await AsyncStorage.getItem("token");
-//     if (token !== null) {
-//       console.log("Token:", token);
-//       return token;
-//     }
-//   } catch (error) {
-//     console.log("Error getting token", error);
-//   }
-// };
+  //   const getToken = async () => {
+  //   try {
+  //     const token = await AsyncStorage.getItem("token");
+  //     if (token !== null) {
+  //       console.log("Token:", token);
+  //       return token;
+  //     }
+  //   } catch (error) {
+  //     console.log("Error getting token", error);
+  //   }
+  // };
   // const item = data.map((i)=> {
   //   // if (i.senderId === id) {
   //   //   console.log("From Me");
@@ -60,23 +66,26 @@ export const ChatScreen = ({ route }) => {
       const res = await axios.post(
         `http://localhost:5000/api/chats/${chatId}/messages`,
         { text: message },
-        {headers: { Authorization: `Bearer ${token}` }}
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setData((prev) => [...prev, res.data]);
 
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
-      // console.log(res.data);
     } catch (error) {
       console.log(error.response?.data || error.message);
     }
   };
 
-  useEffect(() => {
-    
+useFocusEffect(
+  useCallback(() => {
+    // if (!chatId || !user?.id) return ;
     fetchMessages();
-  }, []);
+  }, [chatId])
+    // console.log(user)
+    
+);
 
   return (
     <KeyboardAvoidingView
@@ -101,7 +110,9 @@ export const ChatScreen = ({ route }) => {
             <Card
               style={[
                 styles.card,
-                item.senderId !== id ? styles.myMessage : styles.otherMessage,
+                item.senderId === user.id
+                  ? styles.myMessage
+                  : styles.otherMessage,
               ]}
             >
               <Card.Content
@@ -138,7 +149,7 @@ export const ChatScreen = ({ route }) => {
       </View>
       <View
         style={{
-          marginTop:20,
+          marginTop: 20,
           // position: "absolute",
           // bottom: 0,
           // left: 0,
@@ -193,11 +204,11 @@ const styles = StyleSheet.create({
     maxWidth: "80%",
   },
   myMessage: {
-    backgroundColor: "#2ca0e8",
+    backgroundColor: "blue",
     alignSelf: "flex-end",
   },
   otherMessage: {
-    backgroundColor: "#fff",
+    backgroundColor: "red",
     alignSelf: "flex-start",
   },
 });

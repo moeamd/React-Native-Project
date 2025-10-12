@@ -14,8 +14,8 @@ export const InobxScreen = () => {
   const [frindsData, setFrindsData] = useState([]);
   const {user , loading} = useSelector((state)=>state.user )
   const url = "http://localhost:5000/api/chats";
-
-  console.log(user);
+  
+  // console.log(user);
   
   //  get all chats
   const fetchData = async () => {
@@ -25,7 +25,9 @@ export const InobxScreen = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setData(res.data);
-      console.log(res.data);
+      // console.log(res.data);
+      console.log("Response status:", res.status);
+console.log("Response data:", res.data);
     } catch (error) {
       console.log(error.response?.data || error.message);
     }
@@ -55,7 +57,7 @@ export const InobxScreen = () => {
       );
       const data = res.map((r) => r.data.user);
       setFrindsData(data);
-      console.log(data);
+      // console.log(data);
     } catch (err) {
       console.error(err);
     }
@@ -76,29 +78,23 @@ export const InobxScreen = () => {
 
 useFocusEffect(
   useCallback(() => {
-    fetchData();
-  }, [])
+    const loadData = async () => {
+      await fetchData();
+    };
+    loadData();
+  }, [user])
 );
-useFocusEffect(
-  useCallback(() => {
-   if (data.length > 0 && user.id) {
+
+
+useEffect(() => {
+  if (data.length > 0 && user?.id) {
     getFrindsData();
   }
-  }, [data,user])
-);
+}, [data, user]);
 
-// useEffect(() => {
-//   const init = async () => {
-//     await fetchData();
-//   };
-//   init();
-// }, []);
 
-// useEffect(() => {
-//   if (data.length > 0 && user.id) {
-//     getFrindsData();
-//   }
-// }, [data, user]);
+
+
 
   return (
     <View style={{ padding: 20 }}>

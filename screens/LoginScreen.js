@@ -4,8 +4,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../Redux/authSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import { fetchUser } from "../Redux/userSlcie";
 
-const LoginScreen = () => {
+const LoginScreen = ({setIsLoggedIn }) => {
   const navigation = useNavigation();
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -36,23 +38,22 @@ const LoginScreen = () => {
   };
 
   const handleLogin = async () => {
-    if (!validate()) return;
 
     try {
-      const resultAction = await dispatch(
-        loginUser({ email: emailOrPhone, password })
-      );
-
-      if (loginUser.fulfilled.match(resultAction)) {
-        const token = resultAction.payload.token;
-        await AsyncStorage.setItem("token", token);
-        navigation.replace("Main");
-      } else {
-        console.log("Login failed:", resultAction.payload || resultAction.error.message);
-      }
-    } catch (err) {
-      console.log("Login error:", err);
+            if (validate()) {
+      const res = await axios.post("http://localhost:5000/api/auth/login", {
+        email: emailOrPhone,
+        password: password,
+      });
+      dispatch(fetchUser(res.data.token));
+      await AsyncStorage.setItem("token", res.data.token);
+      setIsLoggedIn(true)
     }
+    }catch (err) {
+      console.log("from Login", err);
+      
+    }
+
   };
 
   return (
