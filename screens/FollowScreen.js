@@ -9,79 +9,56 @@ import {
   ActivityIndicator,
 } from "react-native";
 import axios from "axios";
-import { useSelector, useDispatch } from "react-redux";
 
-// 🟦 غيّر IP إلى IP جهازك الحقيقي
-const API_URL = "http://10.150.220.39:5000/api/users";
+// ضع هنا IP جهازك بدل localhost لو على موبايل
+const API_URL = "http://192.168.1.6:5000/api/users";
 
-// 🟩 دالة آمنة لجلب المستخدمين
+// دالة لجلب المستخدمين
 const fetchUsers = async () => {
   try {
     const res = await axios.get(API_URL);
-    const data = res.data;
-
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data.users)) return data.users;
-    if (Array.isArray(data.data)) return data.data;
-
-    console.warn("⚠️ Unexpected API response:", data);
-    return [];
+    return res.data;
   } catch (error) {
-    console.error("❌ Error fetching users:", error.message);
-    return [];
+    console.error("Error fetching users:", error.message);
+    throw error;
   }
 };
 
-// 🟦 دالة للفولو / أنفولو
+// دالة للفولو / أنفولو
 const handleFollowToggle = async (currentUser, targetUser) => {
   if (!currentUser || !targetUser) return { success: false };
 
-  const isFollowing = currentUser.followingId?.includes(targetUser.id);
+  const isFollowing = currentUser.followingId.includes(targetUser.id);
 
   try {
     let updatedCurrentUser = { ...currentUser };
     let updatedTargetUser = { ...targetUser };
 
     if (!isFollowing) {
-      // ➕ Follow
-      updatedCurrentUser.followingId = [
-        ...(updatedCurrentUser.followingId || []),
-        targetUser.id,
-      ];
-      updatedCurrentUser.followingNumber =
-        (updatedCurrentUser.followingNumber || 0) + 1;
+      // Follow
+      updatedCurrentUser.followingId.push(targetUser.id);
+      updatedCurrentUser.followingNumber += 1;
 
-      updatedTargetUser.followersId = [
-        ...(updatedTargetUser.followersId || []),
-        currentUser.id,
-      ];
-      updatedTargetUser.followersNumber =
-        (updatedTargetUser.followersNumber || 0) + 1;
+      updatedTargetUser.followersId.push(currentUser.id);
+      updatedTargetUser.followersNumber += 1;
     } else {
-      // ➖ Unfollow
-      updatedCurrentUser.followingId = (updatedCurrentUser.followingId || []).filter(
+      // Unfollow
+      updatedCurrentUser.followingId = updatedCurrentUser.followingId.filter(
         (id) => id !== targetUser.id
       );
-      updatedCurrentUser.followingNumber = Math.max(
-        (updatedCurrentUser.followingNumber || 1) - 1,
-        0
-      );
+      updatedCurrentUser.followingNumber -= 1;
 
-      updatedTargetUser.followersId = (updatedTargetUser.followersId || []).filter(
+      updatedTargetUser.followersId = updatedTargetUser.followersId.filter(
         (id) => id !== currentUser.id
       );
-      updatedTargetUser.followersNumber = Math.max(
-        (updatedTargetUser.followersNumber || 1) - 1,
-        0
-      );
+      updatedTargetUser.followersNumber -= 1;
     }
 
-    // ✅ تحديث البيانات في السيرفر
+    // تحديث السيرفر
     await axios.put(`${API_URL}/${currentUser.id}`, {
       followingId: updatedCurrentUser.followingId,
       followingNumber: updatedCurrentUser.followingNumber,
     });
-
     await axios.put(`${API_URL}/${targetUser.id}`, {
       followersId: updatedTargetUser.followersId,
       followersNumber: updatedTargetUser.followersNumber,
@@ -89,42 +66,45 @@ const handleFollowToggle = async (currentUser, targetUser) => {
 
     return { success: true, updatedCurrentUser, updatedTargetUser };
   } catch (error) {
-    console.error("❌ Error during follow/unfollow:", error.message);
+    console.error("Error during follow/unfollow:", error.message);
     return { success: false };
   }
 };
 
+// الكومبوننت الرئيسية
 const FollowScreen = () => {
-  const dispatch = useDispatch();
-  const { currentUser } = useSelector((state) => state.user);
-
-  // 🟩 غيّر اسم المتغير عشان ميتعارضش مع useSelector
-  const [userList, setUserList] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState({
+    id: 1,
+    followingId: [],
+    followingNumber: 0,
+  });
   const [loading, setLoading] = useState(true);
 
-  // 🟦 تحميل المستخدمين من السيرفر
   useEffect(() => {
     const loadUsers = async () => {
-      const data = await fetchUsers();
-      setUserList(Array.isArray(data) ? data : []);
-      setLoading(false);
+      try {
+        const data = await fetchUsers();
+        setUsers(data);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
     };
     loadUsers();
   }, []);
 
-  // 🟩 زرار الفولو
   const onFollowPress = async (targetUser) => {
     const result = await handleFollowToggle(currentUser, targetUser);
     if (result.success) {
-      // 🔄 تحديث الواجهة
-      setUserList((prevUsers) =>
+      // تحديث UI مباشرة
+      setCurrentUser(result.updatedCurrentUser);
+      setUsers((prevUsers) =>
         prevUsers.map((u) =>
           u.id === targetUser.id ? result.updatedTargetUser : u
         )
       );
-
-      // لو عندك slice في Redux للمستخدم الحالي:
-      // dispatch(updateUser(result.updatedCurrentUser));
     }
   };
 
@@ -136,14 +116,6 @@ const FollowScreen = () => {
     );
   }
 
-  if (!Array.isArray(userList)) {
-    return (
-      <View style={styles.center}>
-        <Text>⚠️ Unexpected data format from server</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -151,7 +123,7 @@ const FollowScreen = () => {
       </View>
 
       <ScrollView>
-        {userList.map((user) => (
+        {users.map((user) => (
           <View key={user.id} style={styles.card}>
             <Image source={{ uri: user.image }} style={styles.avatar} />
             <View style={styles.info}>
@@ -166,7 +138,7 @@ const FollowScreen = () => {
               onPress={() => onFollowPress(user)}
             >
               <Text style={styles.followText}>
-                {currentUser.followingId?.includes(user.id)
+                {currentUser.followingId.includes(user.id)
                   ? "Unfollow"
                   : "Follow"}
               </Text>
@@ -179,33 +151,37 @@ const FollowScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  header: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    alignItems: "center",
-  },
-  title: { fontSize: 20, fontWeight: "bold", color: "#333" },
+  container: { flex: 1, backgroundColor: "#f7faff", paddingTop: 40 },
+  header: { alignItems: "center", marginBottom: 10 },
+  title: { fontSize: 20, fontWeight: "600" },
   card: {
     flexDirection: "row",
-    alignItems: "center",
+    backgroundColor: "#fff",
     padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    marginHorizontal: 15,
+    marginVertical: 6,
+    borderRadius: 10,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
   },
-  avatar: { width: 50, height: 50, borderRadius: 25, marginRight: 12 },
-  info: { flex: 1 },
-  name: { fontSize: 16, fontWeight: "600", color: "#222" },
-  followers: { fontSize: 14, color: "#777" },
+  avatar: { width: 45, height: 45, borderRadius: 25 },
+  info: { flex: 1, marginLeft: 10 },
+  name: { fontWeight: "600", fontSize: 16 },
+  followers: { color: "gray", fontSize: 13 },
   followBtn: {
     backgroundColor: "#007bff",
-    paddingVertical: 6,
     paddingHorizontal: 14,
-    borderRadius: 6,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-  followText: { color: "#fff", fontWeight: "bold" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  followText: { color: "#fff", fontWeight: "500" },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
 
 export default FollowScreen;
