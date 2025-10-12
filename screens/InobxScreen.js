@@ -1,37 +1,33 @@
-import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, TouchableOpacity, FlatList } from "react-native";
 import { Card, IconButton, TextInput } from "react-native-paper";
+import { useSelector } from "react-redux";
+import { useCallback } from 'react';
 
 export const InobxScreen = () => {
   const navigation = useNavigation();
   const [data, setData] = useState([]);
   const [myData, setMyData] = useState([]);
   const [frindsData, setFrindsData] = useState([]);
-  const token =
-    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1vZW1hZDUwNkBnbWFpbC5jb20iLCJpZCI6IjNvWjlNZWczT29tWnhoeDMxY3BGIiwicm9sZSI6InVzZXIiLCJuYW1lIjoibWFtZG91aCIsInVzZXJJbWFnZVVybCI6bnVsbCwiaWF0IjoxNzU5OTcwNzc2LCJleHAiOjE3NjAwNTcxNzZ9.cYvadkeBS4wk6KF8aAYOLuRFk5eu76Ym_ZquBcynoWk";
+  const {user , loading} = useSelector((state)=>state.user )
   const url = "http://localhost:5000/api/chats";
-  const getMyId = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/users/me", {
-        headers: { Authorization: token },
-      });
-      setMyData(res.data);
-      console.log(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
+  
+  // console.log(user);
+  
   //  get all chats
   const fetchData = async () => {
     try {
+      const token = await AsyncStorage.getItem("token");
       const res = await axios.get(url, {
-        headers: { Authorization: token },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setData(res.data);
-      console.log(res.data);
+      // console.log(res.data);
+      console.log("Response status:", res.status);
+console.log("Response data:", res.data);
     } catch (error) {
       console.log(error.response?.data || error.message);
     }
@@ -48,19 +44,20 @@ export const InobxScreen = () => {
 
   // get Frinds Data
   const getFrindsData = async () => {
-    const frindIds = getMyFrindId(data, myData.id);
+    const frindIds = getMyFrindId(data, user.id);
     if (frindIds.length === 0) return;
     try {
+      const token = await AsyncStorage.getItem("token");
       const res = await Promise.all(
         frindIds.map((id) =>
           axios.get(`http://localhost:5000/api/users/${id}`, {
-            headers: { Authorization: token },
+            headers: { Authorization: `Bearer ${token}` },
           })
         )
       );
       const data = res.map((r) => r.data.user);
       setFrindsData(data);
-      console.log(data);
+      // console.log(data);
     } catch (err) {
       console.error(err);
     }
@@ -69,7 +66,7 @@ export const InobxScreen = () => {
   // merge data
   const mergeData = data.map((chat) => {
 
-    const frindId = chat.members.find((id) => id !== myData.id);
+    const frindId = chat.members.find((id) => id !== user.id);
     const friend  = frindsData.find((f) => f.id === frindId);
 
     return {
@@ -77,17 +74,27 @@ export const InobxScreen = () => {
       friend: friend || {},
     };
   });
-  useEffect(() => {
-    getMyId();
-    fetchData();
-  }, []);
 
-  useEffect(() => {
-    if (data.length > 0 && myData.id) {
-      getFrindsData();
-    }
-  }, [data, myData]);
-console.log(mergeData);
+
+useFocusEffect(
+  useCallback(() => {
+    const loadData = async () => {
+      await fetchData();
+    };
+    loadData();
+  }, [user])
+);
+
+
+useEffect(() => {
+  if (data.length > 0 && user?.id) {
+    getFrindsData();
+  }
+}, [data, user]);
+
+
+
+
 
   return (
     <View style={{ padding: 20 }}>
@@ -98,7 +105,7 @@ console.log(mergeData);
         underlineColor="#2ca0e8ff"
       />
 
-        <View style={{ height: "90%" }}>
+        <View style={{ flex: 1 }}>
           <FlatList
             data={mergeData}
             keyExtractor={(item) => item.id}
