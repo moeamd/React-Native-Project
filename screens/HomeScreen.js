@@ -15,7 +15,7 @@ export const HomeScreen = () => {
     const fetchData = async () => {
       try {
         //192.168.11.174
-        const response = await axios.get('http://192.168.11.174:5000/api/posts', {
+        const response = await axios.get('http://localhost:5000/api/posts', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -37,10 +37,10 @@ export const HomeScreen = () => {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.storySection}>
         <View style={styles.storyItem}>
-          <Image
+          {/* <Image
             source={user.imageUrl}
             style={styles.storyCircle}
-          />
+          /> */}
           <Text style={styles.storyText}>add Story</Text>
         
         </View>

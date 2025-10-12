@@ -114,15 +114,15 @@ export default function RegisterScreen() {
       formData.append("email", email);
       formData.append("password", password);
 
-      if (image) {
-        formData.append("image", {
-          uri: image,
-          type: "image/jpeg",
-          name: "profile.jpg",
-        });
-      }
+      // if (image) {
+      //   formData.append("image", {
+      //     uri: image,
+      //     type: "image/jpeg",
+      //     name: "profile.jpg",
+      //   });
+      // }
 
-      await axios.post("http://10.210.20.39:5000/api/auth/register", formData, {
+      await axios.post("http://localhost:5000/api/auth/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

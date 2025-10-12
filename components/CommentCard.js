@@ -16,7 +16,7 @@ const CommentCard = ({postId}) => {
                 //192.168.11.174
                 console.log('Fetching comments for postId:', postId);
 
-                const response = await axios.get(`http://192.168.11.174:5000/api/comments/${postId}`, {
+                const response = await axios.get(`http://localhost:5000/api/comments/${postId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

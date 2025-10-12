@@ -56,7 +56,7 @@ const AddPost = () => {
 
 
         try {
-            const response = await axios.post('http://192.168.11.174:5000/api/posts', formData, {
+            const response = await axios.post('http://localhost:5000/api/posts', formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',

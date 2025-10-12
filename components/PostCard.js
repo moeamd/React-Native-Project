@@ -21,7 +21,7 @@ const PostCard = ({ post }) => {
     const handleSubmitComment = async () => {
         try {
             const response = await axios.post(
-                `http://192.168.11.174:5000/api/comments/${post.id}`,
+                `http://localhost:5000/api/comments/${post.id}`,
                 
                 { content: commentText }, // plain JSON body
                 
