@@ -1,79 +1,113 @@
 import React, { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native'
+import { Ionicons } from "@expo/vector-icons";
 import { styles } from '../styles/HomeScreenStyle'
 import axios from 'axios';
-import * as ImagePicker from "expo-image-picker";
-
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
+import { token } from '../screens/HomeScreen';
 
 const AddPost = () => {
 
     const [postText, setPostText] = useState('');
-    const [image, setImage] = useState("");
+    const [image, setImage] = useState('');
 
-    const handleImagePick = () => {
-        launchImageLibrary({ mediaType: 'photo' }, (response) => {
-            if (response.didCancel || response.errorCode) {
-                console.warn('Image selection canceled or failed');
-            } else {
-                setImage(response.assets[0]);
-            }
+    const uploadImage = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (permissionResult.granted === false) {
+            console.log("Permission to access gallery is required!");
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 1,
         });
+
+        if (!result.canceled) {
+            setImage(result.assets[0]);
+
+            const fileUri = result.assets[0].uri;
+            const fileInfo = await FileSystem.getInfoAsync(fileUri);
+            if (!fileInfo.exists) {
+                console.log("File does not exist");
+                return;
+            }
+        }
     };
 
     const handleSubmitPost = async () => {
         const formData = new FormData();
-        formData.append('author', 'Kriston Watson');
+
+        formData.append('title', 'Your title');
         formData.append('content', postText);
 
         if (image) {
             formData.append('image', {
                 uri: image.uri,
-                type: image.type,
-                name: image.fileName,
+                name: image.fileName || "photo.jpg",
+                type: image.type || "image/jpeg",
             });
         }
 
+        console.log("Image URI: ", image.uri); // Check if the image URI is valid
+        console.log("FormData content: ", formData);
+
+
         try {
-            const response = await axios.post('https://your-api-url.com/api/posts', formData, {
+            const response = await axios.post('http://192.168.11.174:5000/api/posts', formData, {
                 headers: {
-                    Authorization: `Bearer YOUR_TOKEN_HERE`,
+                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',
                 },
             });
 
-            console.log('Post submitted:', response.data);
+            console.log('✅ Post submitted:', response.data);
             setPostText('');
             setImage(null);
         } catch (error) {
-            console.error('Error submitting post:', error.message);
+            console.error('❌ Error submitting post:', error.message);
+            if (error.response?.data) {
+                console.log('🚨 Server error:', error.response.data);
+            }
         }
     };
+
 
     return (
         <View style={styles.postSection}>
             <View style={styles.postAddContent}>
-                <Image
-                    source={require('../assets/Screenshot (3).png')} // Replace with actual image URL
-                    style={styles.userCircle}
-                />
-                <TextInput
-                    multiline={true}
-                    value={postText}
-                    onChangeText={setPostText}
-                    style={[styles.postInput, styles.noBorder]}
-                    placeholder="What's on your head?"
-                />
-                {postText != '' && (
+                <View style={{ flexDirection: "row" }}>
+                    <Image
+                        source={require('../assets/Screenshot (3).png')}
+                        style={styles.userCircle}
+                    />
+                    <TextInput
+                        multiline={true}
+                        value={postText}
+                        onChangeText={setPostText}
+                        style={[styles.postInput, styles.noBorder]}
+                        placeholder="What's on your head?"
+                    />
+                </View>
+                {(postText != '' || image) && (
                     <TouchableOpacity onPress={handleSubmitPost}>
                         <Text style={styles.submitButton}>Post</Text>
                     </TouchableOpacity>
                 )}
             </View>
             <View style={styles.mediaIcons}>
-                <TouchableOpacity onPress={handleImagePick}>
-                    <Text >📷Image</Text>
+                <TouchableOpacity onPress={uploadImage}>
+                    <View style={{ flexDirection: 'row' }}>
+                        <Ionicons
+                            name="image"
+                            size={20}
+                        />
+                        <Text >Image</Text>
+                    </View>
+
                 </TouchableOpacity>
-                {image && <Image source={{ uri: image.uri }} style={styles.previewImage} />}
 
                 <TouchableOpacity><Text >🎥Video</Text>
                 </TouchableOpacity>
@@ -81,6 +115,12 @@ const AddPost = () => {
                 <TouchableOpacity><Text >📎File</Text>
                 </TouchableOpacity>
             </View>
+            {image && <Image
+                source={{ uri: image.uri }}
+                style={styles.previewImage}
+
+            />
+            }
         </View>
 
 
