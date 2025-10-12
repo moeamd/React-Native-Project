@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { HomeScreen } from "../screens/HomeScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
-import { FollowScreen } from "../screens/FollowScreen";
+import  FollowScreen  from "../screens/FollowScreen";
 import { ChatScreen } from "../screens/ChatScreen";
 import { InobxScreen } from "../screens/InobxScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";

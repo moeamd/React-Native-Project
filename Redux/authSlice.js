@@ -1,15 +1,25 @@
+// Redux/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../../api/api";
 
-// Login 
+// Login without api
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (credentials, { rejectWithValue }) => {
     try {
-      const res = await api.post("/auth/login", credentials);
-      return res.data; // will return token + user info
+      // login 
+      if (
+        (credentials.email === "test@test.com" || credentials.email === "0123456789") &&
+        credentials.password === "123456"
+      ) {
+        return {
+          token: "fakeToken123",
+          user: { name: "Test User", email: credentials.email },
+        };
+      } else {
+        throw new Error("Invalid email or password");
+      }
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || " Error in login  ");
+      return rejectWithValue(err.message || "Error in login");
     }
   }
 );

@@ -9,11 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "@react-native-async-storage/async-storage": "2.2.0",
-=======
     "@react-native-async-storage/async-storage": "^1.24.0",
->>>>>>> e7d5a36a01c93672ec3857fba9e09d8dcfcdab30
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
