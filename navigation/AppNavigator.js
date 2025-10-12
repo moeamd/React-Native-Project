@@ -7,6 +7,7 @@ import FollowScreen from "../screens/FollowScreen";
 import {InobxScreen} from "../screens/InobxScreen";
 import {ChatScreen} from "../screens/ChatScreen";
 import {HomeScreen}  from "../screens/HomeScreen";
+import ProfileStack from "./profileStack"
 
 const Tabs = createBottomTabNavigator();
 const InboxStack = createNativeStackNavigator();
@@ -51,7 +52,7 @@ export default function AppNavigator() {
       />
       <Tabs.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           tabBarIcon: ({ focused }) => (
             <Ionicons
