@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../Redux/authSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import { fetchUser } from "../Redux/userSlcie";
 
 const LoginScreen = () => {
   const navigation = useNavigation();

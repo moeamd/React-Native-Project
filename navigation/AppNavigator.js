@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { HomeScreen } from "../screens/HomeScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
-import  FollowScreen  from "../screens/FollowScreen";
+import FollowScreen from "../screens/FollowScreen";
 import { ChatScreen } from "../screens/ChatScreen";
 import { InobxScreen } from "../screens/InobxScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -10,6 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
+import jwtDecode from "jwt-decode";
 
 const InboxStack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
@@ -23,23 +24,40 @@ function InboxStackScreen() {
   );
 }
 export default function AppNavigator() {
-   const navigation = useNavigation();
+  const navigation = useNavigation();
+
+  
   useEffect(() => {
     const check = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/users/me", {
-          headers: { Authorization: `Bearer ${token}` },
+      if (!navigation.isReady()) return;
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "auth" }],
         });
-      } catch (error) {
-        if (error.response?.status === 401) {
+        return;
+      }
+      try {
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+        if (decoded.exp < currentTime) {
           await AsyncStorage.removeItem("token");
-          navigation.replace("auth");
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "auth" }],
+          });
         }
+      } catch (error) {
+        await AsyncStorage.removeItem("token");
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "auth" }],
+        });
       }
     };
     check();
-  },[]);
+  }, []);
 
   return (
     <Tabs.Navigator>

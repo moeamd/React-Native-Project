@@ -17,10 +17,10 @@ export const HomeScreen = () => {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.storySection}>
         <View style={styles.storyItem}>
-          <Image
+          {/* <Image
             source={user.imageUrl}
             style={styles.storyCircle}
-          />
+          /> */}
           <Text style={styles.storyText}>add St</Text>
         </View>
         <StoryCard />
