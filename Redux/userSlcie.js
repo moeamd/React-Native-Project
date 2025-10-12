@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const fetchUser = createAsyncThunk("user/me", async (token , {rejectWithValue}) => {
   try {
-    const res = await axios.get("http://10.210.20.39:5000/api/users/me", {
+    const res = await axios.get("http://localhost:5000/api/users/me", {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;

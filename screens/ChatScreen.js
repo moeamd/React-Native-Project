@@ -49,7 +49,7 @@ export const ChatScreen = ({ route }) => {
     try {
       const token = await AsyncStorage.getItem("token");
       const res = await axios.get(
-        `http://10.150.220.39:5000/api/chats/${chatId}/messages`,
+        `http://localhost:5000/api/chats/${chatId}/messages`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       // console.log("API Response:", res.data);
@@ -64,7 +64,7 @@ export const ChatScreen = ({ route }) => {
     try {
       const token = await AsyncStorage.getItem("token");
       const res = await axios.post(
-        `http://10.150.220.39:5000/api/chats/${chatId}/messages`,
+        `http://localhost:5000/api/chats/${chatId}/messages`,
         { text: message },
         { headers: { Authorization: `Bearer ${token}` } }
       );

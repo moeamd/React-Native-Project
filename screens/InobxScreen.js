@@ -13,7 +13,7 @@ export const InobxScreen = () => {
   const [myData, setMyData] = useState([]);
   const [frindsData, setFrindsData] = useState([]);
   const {user , loading} = useSelector((state)=>state.user )
-  const url = "http://10.150.220.39:5000/api/chats";
+  const url = "http://localhost:5000/api/chats";
   
   // console.log(user);
   
@@ -50,7 +50,7 @@ console.log("Response data:", res.data);
       const token = await AsyncStorage.getItem("token");
       const res = await Promise.all(
         frindIds.map((id) =>
-          axios.get(`http://10.150.220.39:5000/api/users/${id}`, {
+          axios.get(`http://localhost:5000/api/users/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           })
         )

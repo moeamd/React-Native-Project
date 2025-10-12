@@ -7,7 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { fetchUser } from "../Redux/userSlcie";
 
-const LoginScreen = () => {
+const LoginScreen = ({setIsLoggedIn }) => {
   const navigation = useNavigation();
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -41,16 +41,13 @@ const LoginScreen = () => {
 
     try {
             if (validate()) {
-      const res = await axios.post("http://10.150.220.39:5000/api/auth/login", {
+      const res = await axios.post("http://localhost:5000/api/auth/login", {
         email: emailOrPhone,
         password: password,
       });
       dispatch(fetchUser(res.data.token));
       await AsyncStorage.setItem("token", res.data.token);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Main" }],
-      });
+      setIsLoggedIn(true)
     }
     }catch (err) {
       console.log("from Login", err);
