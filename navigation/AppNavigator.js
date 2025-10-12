@@ -20,6 +20,7 @@ function InboxStackScreen() {
     </InboxStack.Navigator>
   );
 }
+
 export default function AppNavigator() {
   return (
     <Tabs.Navigator>
