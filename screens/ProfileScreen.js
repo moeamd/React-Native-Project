@@ -11,18 +11,30 @@ import {
 import { useSelector } from "react-redux";
 import ProfileStats from "../components/statsSection";
 import AboutSection from "../components/aboutSection";
-import WorkExperienceSection from "../components/workExperienceSection";
+// import WorkExperienceSection from "../components/workExperienceSection";
 import PostCard from "../components/PostCard";
+import { useDispatch } from "react-redux";
+
 
 export const ProfileScreen = ({ navigation, route }) => {
-  const { user, loading } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
-  const otherUser = route?.params?.otherUser || null;
+  const { user: authUser, token } = useSelector((state) => state.auth);
+  const { user: fetchedUser, loading } = useSelector((state) => state.user);
 
-  const isMyProfile = !otherUser;
+  const viewedUserId = route?.params?.userId || null;
+  const isMyProfile = !viewedUserId || viewedUserId === authUser?.id;
+ useEffect(() => {
+    if (isMyProfile) {
+      if (token) {
+        dispatch(fetchUser(token));
+      }
+    } else {
+      dispatch(fetchUserById(viewedUserId));
+    }
+  }, [dispatch, viewedUserId, isMyProfile, token]);
 
-  const profileData = isMyProfile ? user : otherUser;
-
+  const profileData = isMyProfile ? fetchedUser || authUser : fetchedUser;
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -49,9 +61,7 @@ export const ProfileScreen = ({ navigation, route }) => {
         />
         <Text style={styles.name}>{profileData.name}</Text>
         <Text style={styles.username}>@{profileData.username}</Text>
-        <Text style={styles.bio}>
-          {profileData.bio || "No bio available"}
-        </Text>
+        <Text style={styles.bio}>{profileData.bio || "No bio available"}</Text>
 
         {isMyProfile ? (
           <TouchableOpacity
@@ -82,8 +92,6 @@ export const ProfileScreen = ({ navigation, route }) => {
 
       {/* About */}
       <AboutSection aboutText={profileData.bio || "No bio yet."} />
-
-      
 
       {/* Posts Section */}
       <View style={styles.postsSection}>

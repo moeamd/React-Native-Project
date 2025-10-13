@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const fetchUser = createAsyncThunk("user/me", async (token , {rejectWithValue}) => {
   try {
-    const res = await axios.get("http://192.168.1.17:5000/api/users/me", {
+    const res = await axios.get("http://localhost:5000/api/users/me", {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
@@ -16,10 +16,10 @@ export const fetchUser = createAsyncThunk("user/me", async (token , {rejectWithV
 });
 export const updateUser = createAsyncThunk(
   "user/update",
-  async (updatedData, { rejectWithValue }) => {
+  async ({updatedData,id}, { rejectWithValue }) => {
     try {
       const res = await axios.put(
-        "http://192.168.1.17:5000/api/users/update",
+        `http://localhost:5000/api/users/${id}`,
         updatedData,
         {
           headers: { "Content-Type": "application/json" },
@@ -34,6 +34,21 @@ export const updateUser = createAsyncThunk(
     }
   }
 );
+export const fetchUserById = createAsyncThunk(
+  "user/fetchById",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/users/${id}`);
+      return res.data;
+    } catch (err) {
+      if (err.response && err.response.data) {
+        return rejectWithValue(err.response.data);
+      }
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
 const userSlice = createSlice({
     name: "user",
     initialState: {
@@ -65,6 +80,18 @@ const userSlice = createSlice({
     state.loading = false;
   })
   .addCase(updateUser.rejected, (state, action) => {
+    state.loading = false;
+    state.error = action.payload;
+  })
+  .addCase(fetchUserById.pending, (state) => {
+    state.loading = true;
+    state.error = null;
+  })
+  .addCase(fetchUserById.fulfilled, (state, action) => {
+    state.user = action.payload;
+    state.loading = false;
+  })
+  .addCase(fetchUserById.rejected, (state, action) => {
     state.loading = false;
     state.error = action.payload;
   });
