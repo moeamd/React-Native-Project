@@ -13,7 +13,7 @@ import axios from "axios";
 // ضع هنا IP جهازك بدل localhost لو على موبايل
 const API_URL = "http://192.168.1.6:5000/api/users";
 
-// دالة لجلب المستخدمين
+// fetch users
 const fetchUsers = async () => {
   try {
     const res = await axios.get(API_URL);

@@ -41,7 +41,7 @@ const LoginScreen = ({setIsLoggedIn }) => {
 
     try {
             if (validate()) {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post("http://localhost:8081/api/auth/login", {
         email: emailOrPhone,
         password: password,
       });
