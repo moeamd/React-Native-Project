@@ -76,7 +76,8 @@ export const styles = StyleSheet.create({
         marginBottom: 8,
         paddingLeft: 5,
         zIndex: -1,
-        paddingRight: 5
+        paddingRight: 5,
+        minHeight: 50
     },
     postImage: {
         width: '100%',
@@ -128,7 +129,7 @@ export const styles = StyleSheet.create({
     },
     menuDropDown: {
         position: 'absolute', // Required for zIndex to work
-        top: 50,               // Or 45, based on your need
+        top: 45,               // Or 45, based on your need
         right: 0,
         width: 100,
         backgroundColor: 'white',
@@ -148,16 +149,17 @@ export const styles = StyleSheet.create({
         paddingRight: 10,
     },
 
-    menuDropDown: {
-        width: 120,
-        backgroundColor: 'white',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        zIndex: 9999,
-        elevation: 20,
-    }
+    // menuDropDown: {
+    //     width: 120,
+    //     backgroundColor: 'white',
+    //     borderRadius: 8,
+    //     borderWidth: 1,
+    //     borderColor: '#ccc',
+    //     padding: 10,
+    //     zIndex: 9999,
+    //     elevation: 20,
+    //     marginLeft:20
+    // }
 
 
 });
