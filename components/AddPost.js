@@ -6,6 +6,7 @@ import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { token } from '../screens/HomeScreen';
+import { BASE_URL } from '../config';
 
 const AddPost = () => {
 
@@ -56,7 +57,7 @@ const AddPost = () => {
 
 
         try {
-            const response = await axios.post('http://localhost:5000/api/posts', formData, {
+            const response = await axios.post(`${BASE_URL}/posts`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',

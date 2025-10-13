@@ -6,6 +6,7 @@ import CommentCard from './CommentCard';
 import UserCard from './UserCard';
 import axios from 'axios';
 import { token } from '../screens/HomeScreen';
+import { BASE_URL } from '../config';
 
 const PostCard = ({ post }) => {
 
@@ -21,7 +22,7 @@ const PostCard = ({ post }) => {
     const handleSubmitComment = async () => {
         try {
             const response = await axios.post(
-                `http://localhost:5000/api/comments/${post.id}`,
+                `${BASE_URL}/comments/${post.id}`,
                 
                 { content: commentText }, // plain JSON body
                 

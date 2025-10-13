@@ -1,9 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { BASE_URL } from "../config";
 
 export const fetchUser = createAsyncThunk("user/me", async (token , {rejectWithValue}) => {
   try {
-    const res = await axios.get("http://localhost:5000/api/users/me", {
+    const res = await axios.get(`${BASE_URL}/users/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
@@ -19,7 +20,7 @@ export const updateUser = createAsyncThunk(
   async ({updatedData,id}, { rejectWithValue }) => {
     try {
       const res = await axios.put(
-        `http://localhost:5000/api/users/${id}`,
+        `${BASE_URL}/users/${id}`,
         updatedData,
         {
           headers: { "Content-Type": "application/json" },
@@ -38,7 +39,7 @@ export const fetchUserById = createAsyncThunk(
   "user/fetchById",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/users/${id}`);
+      const res = await axios.get(`${BASE_URL}/users/${id}`);
       return res.data;
     } catch (err) {
       if (err.response && err.response.data) {
@@ -49,53 +50,46 @@ export const fetchUserById = createAsyncThunk(
   }
 );
 
+
 const userSlice = createSlice({
-    name: "user",
-    initialState: {
-        user: [],
-        loading: false,
-        error: null,
-    },
-    reducers: {},
-    extraReducers: (builder) => {
-        builder
-        .addCase(fetchUser.pending, (state) => {
-            state.loading = true;
-            state.error = null;
-        })
-        .addCase(fetchUser.fulfilled, (state, action) => {
-            state.user = action.payload;
-            state.loading = false;
-        })
-        .addCase(fetchUser.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload;
-        })
-  .addCase(updateUser.pending, (state) => {
-    state.loading = true;
-    state.error = null;
-  })
-  .addCase(updateUser.fulfilled, (state, action) => {
-    state.user = action.payload; 
-    state.loading = false;
-  })
-  .addCase(updateUser.rejected, (state, action) => {
-    state.loading = false;
-    state.error = action.payload;
-  })
-  .addCase(fetchUserById.pending, (state) => {
-    state.loading = true;
-    state.error = null;
-  })
-  .addCase(fetchUserById.fulfilled, (state, action) => {
-    state.user = action.payload;
-    state.loading = false;
-  })
-  .addCase(fetchUserById.rejected, (state, action) => {
-    state.loading = false;
-    state.error = action.payload;
-  });
-    },
+  name: "user",
+  initialState: {
+    user: null,
+    viewedUser: {},
+    loading: false,
+    error: null,
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUser.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.user = action.payload;
+      })
+      .addCase(fetchUserById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserById.fulfilled, (state, action) => {
+        state.viewedUser = action.payload.user;
+        state.loading = false;
+      })
+      .addCase(fetchUserById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+  },
 });
 
 

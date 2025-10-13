@@ -14,17 +14,20 @@ import AboutSection from "../components/aboutSection";
 // import WorkExperienceSection from "../components/workExperienceSection";
 import PostCard from "../components/PostCard";
 import { useDispatch } from "react-redux";
-
+import { fetchUser, fetchUserById } from "../Redux/userSlcie";
+import { BASE_URL } from "../config";
 
 export const ProfileScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
 
   const { user: authUser, token } = useSelector((state) => state.auth);
-  const { user: fetchedUser, loading } = useSelector((state) => state.user);
+  const { user: fetchedUser, viewedUser ,loading } = useSelector((state) => state.user);
 
   const viewedUserId = route?.params?.userId || null;
   const isMyProfile = !viewedUserId || viewedUserId === authUser?.id;
- useEffect(() => {
+  
+  
+  useEffect(() => {
     if (isMyProfile) {
       if (token) {
         dispatch(fetchUser(token));
@@ -33,8 +36,13 @@ export const ProfileScreen = ({ navigation, route }) => {
       dispatch(fetchUserById(viewedUserId));
     }
   }, [dispatch, viewedUserId, isMyProfile, token]);
-
-  const profileData = isMyProfile ? fetchedUser || authUser : fetchedUser;
+useEffect(() => {
+  if (!isMyProfile && viewedUser) {
+    console.log("تم تحميل بيانات المستخدم:", viewedUser);
+  }
+}, [viewedUser]);
+  
+  const profileData = isMyProfile ? fetchedUser || authUser : viewedUser;
   if (loading) {
     return (
       <View style={styles.loadingContainer}>

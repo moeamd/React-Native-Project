@@ -9,59 +9,91 @@ import {
   ActivityIndicator,
 } from "react-native";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { updateUser } from "../Redux/userSlcie";
+import { BASE_URL } from "../config";
 
 // ضع هنا IP جهازك بدل localhost لو على موبايل
-const API_URL = "http://localhost:5000/api/users";
 
 // دالة لجلب المستخدمين
-const fetchUsers = async () => {
-  try {
-    const res = await axios.get(API_URL);
-    return res.data;
-  } catch (error) {
-    console.error("Error fetching users:", error.message);
-    throw error;
-  }
-};
 
-// دالة للفولو / أنفولو
-const handleFollowToggle = async (currentUser, targetUser) => {
+// الكومبوننت الرئيسية
+const FollowScreen = () => {
+  const [users, setUsers] = useState([]);
+  const { user: currentUser } = useSelector((state) => state.user);
+  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const API_URL = `${BASE_URL}/users`;
+
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      return res.data;
+    } catch (error) {
+      console.error("Error fetching users:", error.message);
+      throw error;
+    }
+  };
+
+  // دالة للفولو / أنفولو
+  const handleFollowToggle = async (currentUser, targetUser) => {
   if (!currentUser || !targetUser) return { success: false };
 
-  const isFollowing = currentUser.followingId.includes(targetUser.id);
+  // تأمين القيم الافتراضية
+  const followingIds = currentUser.followingId ?? [];
+  const followersIds = targetUser.followersId ?? [];
+
+  const isFollowing = followingIds.includes(targetUser.id);
 
   try {
-    let updatedCurrentUser = { ...currentUser };
-    let updatedTargetUser = { ...targetUser };
+    // نسخ المستخدمين وتحديثهم
+    let updatedCurrentUser = {
+      ...currentUser,
+      followingId: [...followingIds],
+      followingNum: currentUser.followingNum ?? 0,
+    };
+
+    let updatedTargetUser = {
+      ...targetUser,
+      followersId: [...followersIds],
+      followersNum: targetUser.followersNum ?? 0,
+    };
 
     if (!isFollowing) {
       // Follow
       updatedCurrentUser.followingId.push(targetUser.id);
-      updatedCurrentUser.followingNumber += 1;
+      updatedCurrentUser.followingNum += 1;
 
       updatedTargetUser.followersId.push(currentUser.id);
-      updatedTargetUser.followersNumber += 1;
+      updatedTargetUser.followersNum += 1;
     } else {
       // Unfollow
       updatedCurrentUser.followingId = updatedCurrentUser.followingId.filter(
         (id) => id !== targetUser.id
       );
-      updatedCurrentUser.followingNumber -= 1;
+      updatedCurrentUser.followingNum = Math.max(
+        0,
+        updatedCurrentUser.followingNum - 1
+      );
 
       updatedTargetUser.followersId = updatedTargetUser.followersId.filter(
         (id) => id !== currentUser.id
       );
-      updatedTargetUser.followersNumber -= 1;
+      updatedTargetUser.followersNum = Math.max(
+        0,
+        updatedTargetUser.followersNum - 1
+      );
     }
 
-    // تحديث السيرفر
+    // تحديث البيانات في السيرفر
     await axios.put(`${API_URL}/${currentUser.id}`, {
       followingId: updatedCurrentUser.followingId,
-      followingNumber: updatedCurrentUser.followingNumber,
+      followingNum: updatedCurrentUser.followingNum,
     });
+
     await axios.put(`${API_URL}/${targetUser.id}`, {
       followersId: updatedTargetUser.followersId,
-      followersNumber: updatedTargetUser.followersNumber,
+      followersNum: updatedTargetUser.followersNum,
     });
 
     return { success: true, updatedCurrentUser, updatedTargetUser };
@@ -71,21 +103,13 @@ const handleFollowToggle = async (currentUser, targetUser) => {
   }
 };
 
-// الكومبوننت الرئيسية
-const FollowScreen = () => {
-  const [users, setUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState({
-    id: 1,
-    followingId: [],
-    followingNumber: 0,
-  });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadUsers = async () => {
       try {
         const data = await fetchUsers();
-        setUsers(data);
+        console.log("Fetched users:", data.users);
+        setUsers(data.users);
       } catch (err) {
         console.log(err);
       } finally {
@@ -95,19 +119,26 @@ const FollowScreen = () => {
     loadUsers();
   }, []);
 
-  const onFollowPress = async (targetUser) => {
-    const result = await handleFollowToggle(currentUser, targetUser);
-    if (result.success) {
-      // تحديث UI مباشرة
-      setCurrentUser(result.updatedCurrentUser);
-      setUsers((prevUsers) =>
-        prevUsers.map((u) =>
-          u.id === targetUser.id ? result.updatedTargetUser : u
-        )
-      );
-    }
-  };
+const onFollowPress = async (targetUser) => {
+  const result = await handleFollowToggle(currentUser, targetUser);
+  if (result.success) {
+    // تحديث المستخدم الحالي في Redux
+    dispatch(updateUser({ 
+      id: result.updatedCurrentUser.id, 
+      updatedData: {
+        followingId: result.updatedCurrentUser.followingId,
+        followingNum: result.updatedCurrentUser.followingNum,
+      },
+    }));
 
+    // تحديث المستخدم الهدف في الواجهة
+    setUsers((prevUsers) =>
+      prevUsers.map((u) =>
+        u.id === targetUser.id ? result.updatedTargetUser : u
+      )
+    );
+  }
+};
   if (loading) {
     return (
       <View style={styles.center}>
@@ -125,7 +156,7 @@ const FollowScreen = () => {
       <ScrollView>
         {users.map((user) => (
           <View key={user.id} style={styles.card}>
-            <Image source={{ uri: user.image }} style={styles.avatar} />
+            <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
             <View style={styles.info}>
               <Text style={styles.name}>{user.name}</Text>
               <Text style={styles.followers}>
@@ -138,7 +169,7 @@ const FollowScreen = () => {
               onPress={() => onFollowPress(user)}
             >
               <Text style={styles.followText}>
-                {currentUser.followingId.includes(user.id)
+                {(currentUser?.followingId ?? []).includes(user.id)
                   ? "Unfollow"
                   : "Follow"}
               </Text>

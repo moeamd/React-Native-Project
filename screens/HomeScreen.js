@@ -6,6 +6,7 @@ import PostCard from '../components/PostCard.js';
 import AddPost from '../components/AddPost.js';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from "../config";
 
 export const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFiZHVsbGFoYWFidWt1ZmZhQGdtYWlsLmNvbSIsImlkIjoidmthZzRPQnhIN2hsUmt5Wms0dFYiLCJyb2xlIjoidXNlciIsIm5hbWUiOiJBYmR1bGxhaCBBYmRlbEdoYWZmYXIiLCJ1c2VySW1hZ2VVcmwiOm51bGwsImlhdCI6MTc2MDI2NTc4MSwiZXhwIjoxNzYwMzUyMTgxfQ.TsChav2Nu0LPuh_yn9fwbpEVnr25jNXVVYL4HM7Q1J8';
 export const HomeScreen = () => {
@@ -15,7 +16,7 @@ export const HomeScreen = () => {
     const fetchData = async () => {
       try {
         //192.168.11.174
-        const response = await axios.get('http://localhost:5000/api/posts', {
+        const response = await axios.get(`${BASE_URL}/posts`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

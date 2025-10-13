@@ -6,6 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { fetchUser } from "../Redux/userSlcie";
+import { BASE_URL } from "../config";
 
 const LoginScreen = ({setIsLoggedIn }) => {
   const navigation = useNavigation();
@@ -41,7 +42,7 @@ const LoginScreen = ({setIsLoggedIn }) => {
 
     try {
             if (validate()) {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post(`${BASE_URL}/auth/login`, {
         email: emailOrPhone,
         password: password,
       });

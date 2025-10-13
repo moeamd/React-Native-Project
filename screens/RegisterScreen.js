@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import axios from "axios"; 
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
+import { BASE_URL } from "../config";
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState("");
@@ -122,7 +123,7 @@ export default function RegisterScreen() {
       //   });
       // }
 
-      await axios.post("http://localhost:5000/api/auth/register", formData, {
+      await axios.post(`${BASE_URL}/auth/register`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -9,18 +9,23 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import { Avatar, Card, TextInput } from "react-native-paper";
 import { useSelector } from "react-redux";
+import { BASE_URL } from "../config";
 
 export const ChatScreen = ({ route }) => {
   const [message, setMessage] = useState("");
   const [data, setData] = useState([]);
   // console.log(data);
-  
+
   const { id, name, age, image, chatId } = route.params;
   const flatListRef = useRef(null);
-  const {user , loading} = useSelector((state)=>state.user)
+  const { user, loading } = useSelector((state) => state.user);
+  const navigation = useNavigation()
+  console.log({id, name, age, image, chatId} );
+  
 
   // console.log(id);
   // console.log(data);
@@ -49,7 +54,7 @@ export const ChatScreen = ({ route }) => {
     try {
       const token = await AsyncStorage.getItem("token");
       const res = await axios.get(
-        `http://localhost:5000/api/chats/${chatId}/messages`,
+        `${BASE_URL}/chats/${chatId}/messages`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       // console.log("API Response:", res.data);
@@ -64,7 +69,7 @@ export const ChatScreen = ({ route }) => {
     try {
       const token = await AsyncStorage.getItem("token");
       const res = await axios.post(
-        `http://localhost:5000/api/chats/${chatId}/messages`,
+        `${BASE_URL}/chats/${chatId}/messages`,
         { text: message },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -78,14 +83,13 @@ export const ChatScreen = ({ route }) => {
     }
   };
 
-useFocusEffect(
-  useCallback(() => {
-    // if (!chatId || !user?.id) return ;
-    fetchMessages();
-  }, [chatId])
+  useFocusEffect(
+    useCallback(() => {
+      // if (!chatId || !user?.id) return ;
+      fetchMessages();
+    }, [chatId])
     // console.log(user)
-    
-);
+  );
 
   return (
     <KeyboardAvoidingView
@@ -93,21 +97,27 @@ useFocusEffect(
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       {/* Header */}
-      <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.header}
+        onPress={() => {
+          navigation.navigate("Profile", {
+            screen: "ProfileMain",
+            params: { userId: id },
+          });
+        }}
+      >
         <Avatar.Image
           size={50}
           source={require("../assets/IMG-20210822-WA0009.jpg")}
         />
         <Text style={styles.headerText}>{name}</Text>
-      </View>
+      </TouchableOpacity>
 
       {/* Messages */}
       <FlatList
         ref={flatListRef}
         data={data}
-        keyExtractor={(item, index) =>
-          item.id?.toString() || index.toString()
-        }
+        keyExtractor={(item, index) => item.id?.toString() || index.toString()}
         renderItem={({ item }) => (
           <Card
             style={[

@@ -6,6 +6,7 @@ import { Text, View } from 'react-native'
 import UserCard from './UserCard'
 import axios from 'axios';
 import { token } from '../screens/HomeScreen';
+import { BASE_URL } from '../config';
 
 const CommentCard = ({postId}) => {
     const [comments, setComments] = useState([]);
@@ -16,7 +17,7 @@ const CommentCard = ({postId}) => {
                 //192.168.11.174
                 console.log('Fetching comments for postId:', postId);
 
-                const response = await axios.get(`http://localhost:5000/api/comments/${postId}`, {
+                const response = await axios.get(`${BASE_URL}/comments/${postId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
