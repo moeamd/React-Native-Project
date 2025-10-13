@@ -115,19 +115,19 @@ export default function RegisterScreen() {
       formData.append("email", email);
       formData.append("password", password);
 
-      // if (image) {
-      //   formData.append("image", {
-      //     uri: image,
-      //     type: "image/jpeg",
-      //     name: "profile.jpg",
-      //   });
-      // }
+      if (image) {
+        formData.append("image", {
+          uri: image,
+          type: "image/jpeg",
+          name: "profile.jpg",
+        });
+      }
 
       await axios.post(`${BASE_URL}/auth/register`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      navigation.navigate("login"); //move to login screen
+      navigation.navigate("Auth", { screen: "SignIn" });
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
