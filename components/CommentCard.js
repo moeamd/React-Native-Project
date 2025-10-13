@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
 import UserCard from './UserCard'
 import axios from 'axios';
-import { token } from '../screens/HomeScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../config';
 
 const CommentCard = ({postId}) => {
@@ -16,6 +16,8 @@ const CommentCard = ({postId}) => {
             try {
                 //192.168.11.174
                 console.log('Fetching comments for postId:', postId);
+
+                const token = await AsyncStorage.getItem("token");
 
                 const response = await axios.get(`${BASE_URL}/comments/${postId}`, {
                     headers: {
@@ -31,6 +33,7 @@ const CommentCard = ({postId}) => {
         }
         fetchData();
     }, [postId])
+    
     return (
         <>
             {comments.map((comment, index) => (
