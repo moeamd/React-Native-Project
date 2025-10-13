@@ -8,7 +8,7 @@ import axios from "axios";
 import { fetchUser } from "../Redux/userSlcie";
 import { BASE_URL } from "../config";
 
-const LoginScreen = ({setIsLoggedIn }) => {
+const LoginScreen = ({ setIsLoggedIn }) => {
   const navigation = useNavigation();
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +16,7 @@ const LoginScreen = ({setIsLoggedIn }) => {
 
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
+  const token = useSelector(state => state.auth.token);
 
   const validate = () => {
     const newErrors = {};
@@ -23,7 +24,7 @@ const LoginScreen = ({setIsLoggedIn }) => {
     const phoneRegex = /^\+?\d{7,15}$/;
 
     if (!emailOrPhone) {
-      newErrors.emailOrPhone = "Email or Phone is required";
+      newErrors.emailOrPhone = "Email is required";
     } else if (!emailRegex.test(emailOrPhone) && !phoneRegex.test(emailOrPhone)) {
       newErrors.emailOrPhone = "Enter a valid Email or Phone";
     }
@@ -41,27 +42,37 @@ const LoginScreen = ({setIsLoggedIn }) => {
   const handleLogin = async () => {
 
     try {
-            if (validate()) {
-      const res = await axios.post(`${BASE_URL}/auth/login`, {
-        email: emailOrPhone,
-        password: password,
-      });
-      dispatch(fetchUser(res.data.token));
-      await AsyncStorage.setItem("token", res.data.token);
-      setIsLoggedIn(true)
+      if (validate()) {
+        const res = await axios.post(`${BASE_URL}/auth/login`, {
+          email: emailOrPhone,
+          password: password,
+        }, {
+          headers:
+          {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type": "application/json"
+          }
+        });
+        dispatch(fetchUser(res.data.token));
+        console.log(res.data);
+        await AsyncStorage.setItem("token", res.data.token);
+        setIsLoggedIn(true)
+      }
+    } catch (err) {
+      console.log(err);
+      if (err.response && err.response.data && err.response.data.message) {
+        setErrors({ general: err.response.data.message });
+      } else {
+        setErrors({ general: "An error occurred. Please try again." });
+      }
     }
-    }catch (err) {
-      console.log("from Login", err);
-      
-    }
-
   };
 
   return (
     <View style={styles.container}>
       <TextInput
         style={[styles.input, errors.emailOrPhone && { borderColor: "red" }]}
-        placeholder="Email or Phone"
+        placeholder="Email"
         value={emailOrPhone}
         onChangeText={setEmailOrPhone}
       />

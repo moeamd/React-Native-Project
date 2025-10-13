@@ -11,13 +11,7 @@ export const AuthScreen = ({setIsLoggedIn }) => {
     <View style={styles.container}>
       <View style={{flexDirection:"column",justifyContent:'center',alignItems:'center'}}>
         <View style={styles.logoContainer}>
-          <View style={styles.iconCircle}>
-            <Ionicons
-              name="chatbubble-ellipses-outline"
-              size={28}
-              color="#00aaff"
-            />
-          </View>
+      
           <Text style={styles.logoText}>
             <Text style={{ color: "#000", fontWeight: "700" }}>SOCIAL </Text>
             <Text style={{ color: "#00aaff", fontWeight: "700" }}>MATE</Text>

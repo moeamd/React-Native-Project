@@ -18,6 +18,7 @@ export default function RootNavigator() {
     const checkToken = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
+        console.log("Token:", token);
         if (token) {
           const decoded = jwtDecode(token);
           const currentTime = Date.now() / 1000;
