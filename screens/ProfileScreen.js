@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,33 +8,75 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import ProfileStats from "../components/statsSection";
 import AboutSection from "../components/aboutSection";
-// import WorkExperienceSection from "../components/workExperienceSection";
 import PostCard from "../components/PostCard";
+<<<<<<< Updated upstream
 import { useDispatch } from "react-redux";
 
+=======
+import { fetchUser, fetchUserById } from "../Redux/userSlcie";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+>>>>>>> Stashed changes
 
 export const ProfileScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
 
+<<<<<<< Updated upstream
   const { user: authUser, token } = useSelector((state) => state.auth);
   const { user: fetchedUser, loading } = useSelector((state) => state.user);
 
   const viewedUserId = route?.params?.userId || null;
   const isMyProfile = !viewedUserId || viewedUserId === authUser?.id;
  useEffect(() => {
+=======
+  const { user: authUser } = useSelector((state) => state.auth);
+  const { user: fetchedUser, viewedUser, loading } = useSelector(
+    (state) => state.user
+  );
+
+  const [token, setToken] = useState(null); // ✅ خزننا التوكن هنا
+
+  const viewedUserId = route?.params?.userId || null;
+  const isMyProfile = !viewedUserId || viewedUserId === authUser?.id;
+
+  // ✅ جلب التوكن من AsyncStorage أول ما الصفحة تفتح
+  useEffect(() => {
+    const loadToken = async () => {
+      const storedToken = await AsyncStorage.getItem("token");
+      console.log("Loaded token:", storedToken);
+      setToken(storedToken);
+    };
+    loadToken();
+  }, []);
+
+  // ✅ تحميل بيانات المستخدم بناءً على الحالة (صفحتي / صفحة مستخدم تاني)
+  useEffect(() => {
+    if (!token) return; // انتظري التوكن الأول
+
+>>>>>>> Stashed changes
     if (isMyProfile) {
-      if (token) {
-        dispatch(fetchUser(token));
-      }
-    } else {
+      dispatch(fetchUser(token));
+      console.log("Fetching current user with token:", token);
+    } else if (viewedUserId) {
       dispatch(fetchUserById(viewedUserId));
+      console.log("Fetching viewed user by ID:", viewedUserId);
     }
   }, [dispatch, viewedUserId, isMyProfile, token]);
 
+<<<<<<< Updated upstream
   const profileData = isMyProfile ? fetchedUser || authUser : fetchedUser;
+=======
+  useEffect(() => {
+    if (!isMyProfile && viewedUser) {
+      console.log("Updated viewed User successfully:", viewedUser);
+    }
+  }, [viewedUser]);
+
+  const profileData = isMyProfile ? fetchedUser || authUser : viewedUser;
+
+>>>>>>> Stashed changes
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -56,7 +98,11 @@ export const ProfileScreen = ({ navigation, route }) => {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{ uri: profileData.imageUrl }}
+          source={
+            profileData.imageUrl
+              ? { uri: profileData.imageUrl }
+              : require("../assets/avatar.jpg")
+          }
           style={styles.profileImage}
         />
         <Text style={styles.name}>{profileData.name}</Text>
@@ -83,9 +129,9 @@ export const ProfileScreen = ({ navigation, route }) => {
       </View>
 
       {/* Stats */}
+      {console.log("Following number:", profileData.followingNum)}
       <ProfileStats
         posts={profileData.postsCount}
-        photos={0}
         followers={profileData.followersNum}
         following={profileData.followingNum}
       />

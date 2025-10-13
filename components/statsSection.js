@@ -1,25 +1,21 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const ProfileStats = ({ posts, photos, followers, following }) => {
+const ProfileStats = ({ posts, followers, following }) => {
   return (
     <View style={styles.container}>
       <View style={styles.statItem}>
+        <Text style={styles.statNumber}>Posts</Text>
         <Text style={styles.statNumber}>{posts}</Text>
-        <Text style={styles.statLabel}>Post</Text>
       </View>
       <View style={styles.statItem}>
-        <Text style={styles.statNumber}>{photos}</Text>
-        <Text style={styles.statLabel}>Photos</Text>
-      </View>
-      <View style={styles.statItem}>
+        <Text style={styles.statNumber}>Followers</Text>
         <Text style={styles.statNumber}>{followers}</Text>
-        <Text style={styles.statLabel}>Followers</Text>
       </View>
-      <View style={styles.statItem}>
-        <Text style={styles.statNumber}>{following}</Text>
-        <Text style={styles.statLabel}>Following</Text>
-      </View>
+        <View style={styles.statItem}>
+        <Text style={styles.statNumber}>Following</Text>
+        <Text style={styles.statNumber}>{following ?? 0 }</Text>
+      </View> 
     </View>
   );
 };
