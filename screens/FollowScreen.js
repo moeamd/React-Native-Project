@@ -12,6 +12,7 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { updateUser } from "../Redux/userSlcie";
 import { BASE_URL } from "../config";
+import { useNavigation } from "@react-navigation/native";
 
 // ضع هنا IP جهازك بدل localhost لو على موبايل
 
@@ -23,6 +24,7 @@ const FollowScreen = () => {
   const { user: currentUser } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
+  const navigation = useNavigation()
   const API_URL = `${BASE_URL}/users`;
 
   const fetchUsers = async () => {
@@ -35,74 +37,73 @@ const FollowScreen = () => {
     }
   };
 
-  // دالة للفولو / أنفولو
+
   const handleFollowToggle = async (currentUser, targetUser) => {
-  if (!currentUser || !targetUser) return { success: false };
+    if (!currentUser || !targetUser) return { success: false };
 
-  // تأمين القيم الافتراضية
-  const followingIds = currentUser.followingId ?? [];
-  const followersIds = targetUser.followersId ?? [];
 
-  const isFollowing = followingIds.includes(targetUser.id);
+    const followingIds = currentUser.followingId ?? [];
+    const followersIds = targetUser.followersId ?? [];
 
-  try {
-    // نسخ المستخدمين وتحديثهم
-    let updatedCurrentUser = {
-      ...currentUser,
-      followingId: [...followingIds],
-      followingNum: currentUser.followingNum ?? 0,
-    };
+    const isFollowing = followingIds.includes(targetUser.id);
 
-    let updatedTargetUser = {
-      ...targetUser,
-      followersId: [...followersIds],
-      followersNum: targetUser.followersNum ?? 0,
-    };
+    try {
 
-    if (!isFollowing) {
-      // Follow
-      updatedCurrentUser.followingId.push(targetUser.id);
-      updatedCurrentUser.followingNum += 1;
+      let updatedCurrentUser = {
+        ...currentUser,
+        followingId: [...followingIds],
+        followingNum: currentUser.followingNum ?? 0,
+      };
 
-      updatedTargetUser.followersId.push(currentUser.id);
-      updatedTargetUser.followersNum += 1;
-    } else {
-      // Unfollow
-      updatedCurrentUser.followingId = updatedCurrentUser.followingId.filter(
-        (id) => id !== targetUser.id
-      );
-      updatedCurrentUser.followingNum = Math.max(
-        0,
-        updatedCurrentUser.followingNum - 1
-      );
+      let updatedTargetUser = {
+        ...targetUser,
+        followersId: [...followersIds],
+        followersNum: targetUser.followersNum ?? 0,
+      };
 
-      updatedTargetUser.followersId = updatedTargetUser.followersId.filter(
-        (id) => id !== currentUser.id
-      );
-      updatedTargetUser.followersNum = Math.max(
-        0,
-        updatedTargetUser.followersNum - 1
-      );
+      if (!isFollowing) {
+        // Follow
+        updatedCurrentUser.followingId.push(targetUser.id);
+        updatedCurrentUser.followingNum += 1;
+
+        updatedTargetUser.followersId.push(currentUser.id);
+        updatedTargetUser.followersNum += 1;
+      } else {
+        // Unfollow
+        updatedCurrentUser.followingId = updatedCurrentUser.followingId.filter(
+          (id) => id !== targetUser.id
+        );
+        updatedCurrentUser.followingNum = Math.max(
+          0,
+          updatedCurrentUser.followingNum - 1
+        );
+
+        updatedTargetUser.followersId = updatedTargetUser.followersId.filter(
+          (id) => id !== currentUser.id
+        );
+        updatedTargetUser.followersNum = Math.max(
+          0,
+          updatedTargetUser.followersNum - 1
+        );
+      }
+
+
+      await axios.put(`${API_URL}/${currentUser.id}`, {
+        followingId: updatedCurrentUser.followingId,
+        followingNum: updatedCurrentUser.followingNum,
+      });
+
+      await axios.put(`${API_URL}/${targetUser.id}`, {
+        followersId: updatedTargetUser.followersId,
+        followersNum: updatedTargetUser.followersNum,
+      });
+
+      return { success: true, updatedCurrentUser, updatedTargetUser };
+    } catch (error) {
+      console.error("Error during follow/unfollow:", error.message);
+      return { success: false };
     }
-
-    // تحديث البيانات في السيرفر
-    await axios.put(`${API_URL}/${currentUser.id}`, {
-      followingId: updatedCurrentUser.followingId,
-      followingNum: updatedCurrentUser.followingNum,
-    });
-
-    await axios.put(`${API_URL}/${targetUser.id}`, {
-      followersId: updatedTargetUser.followersId,
-      followersNum: updatedTargetUser.followersNum,
-    });
-
-    return { success: true, updatedCurrentUser, updatedTargetUser };
-  } catch (error) {
-    console.error("Error during follow/unfollow:", error.message);
-    return { success: false };
-  }
-};
-
+  };
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -119,26 +120,27 @@ const FollowScreen = () => {
     loadUsers();
   }, []);
 
-const onFollowPress = async (targetUser) => {
-  const result = await handleFollowToggle(currentUser, targetUser);
-  if (result.success) {
-    // تحديث المستخدم الحالي في Redux
-    dispatch(updateUser({ 
-      id: result.updatedCurrentUser.id, 
-      updatedData: {
-        followingId: result.updatedCurrentUser.followingId,
-        followingNum: result.updatedCurrentUser.followingNum,
-      },
-    }));
+  const onFollowPress = async (targetUser) => {
+    const result = await handleFollowToggle(currentUser, targetUser);
+    if (result.success) {
 
-    // تحديث المستخدم الهدف في الواجهة
-    setUsers((prevUsers) =>
-      prevUsers.map((u) =>
-        u.id === targetUser.id ? result.updatedTargetUser : u
-      )
-    );
-  }
-};
+      dispatch(
+        updateUser({
+          id: result.updatedCurrentUser.id,
+          updatedData: {
+            followingId: result.updatedCurrentUser.followingId,
+            followingNum: result.updatedCurrentUser.followingNum,
+          },
+        })
+      );
+
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === targetUser.id ? result.updatedTargetUser : u
+        )
+      );
+    }
+  };
   if (loading) {
     return (
       <View style={styles.center}>
@@ -155,26 +157,36 @@ const onFollowPress = async (targetUser) => {
 
       <ScrollView>
         {users.map((user) => (
-          <View key={user.id} style={styles.card}>
-            <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
-            <View style={styles.info}>
-              <Text style={styles.name}>{user.name}</Text>
-              <Text style={styles.followers}>
-                {user.followersNumber || 0} followers
-              </Text>
-            </View>
+          <TouchableOpacity
+            key={user.id}
+            onPress={() => {
+              navigation.navigate("Profile", {
+                screen: "ProfileMain",
+                params: { userId: user.id },
+              });
+            }}
+          >
+            <View  style={styles.card}>
+              <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
+              <View style={styles.info}>
+                <Text style={styles.name}>{user.name}</Text>
+                <Text style={styles.followers}>
+                  {user.followersNumber || 0} followers
+                </Text>
+              </View>
 
-            <TouchableOpacity
-              style={styles.followBtn}
-              onPress={() => onFollowPress(user)}
-            >
-              <Text style={styles.followText}>
-                {(currentUser?.followingId ?? []).includes(user.id)
-                  ? "Unfollow"
-                  : "Follow"}
-              </Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={styles.followBtn}
+                onPress={() => onFollowPress(user)}
+              >
+                <Text style={styles.followText}>
+                  {(currentUser?.followingId ?? []).includes(user.id)
+                    ? "Unfollow"
+                    : "Follow"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>

@@ -16,6 +16,9 @@ import PostCard from "../components/PostCard";
 import { useDispatch } from "react-redux";
 import { fetchUser, fetchUserById } from "../Redux/userSlcie";
 import { BASE_URL } from "../config";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
 export const ProfileScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
@@ -26,6 +29,31 @@ export const ProfileScreen = ({ navigation, route }) => {
   const viewedUserId = route?.params?.userId || null;
   const isMyProfile = !viewedUserId || viewedUserId === authUser?.id;
   
+
+  const handelNewChat = async ()=> {
+    try {
+      console.log(profileData.id);
+      console.log(fetchedUser.id);
+      const members = [profileData.id ,fetchedUser.id]
+      const token = await AsyncStorage.getItem("token");
+      const res = await axios.post(`${BASE_URL}/chats`, {members},{
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(res.data);
+
+        navigation.navigate("ChatScreen", {
+                  chatId: res.data.id,
+                  id: profileData.id,
+                  name: profileData.name,
+                  image:profileData.imageUrl 
+                })
+    }catch(err) {
+      console.log("From handelNewChat" ,err);
+      
+    }finally{
+
+    }
+  }
   
   useEffect(() => {
     if (isMyProfile) {
@@ -83,7 +111,7 @@ useEffect(() => {
             <TouchableOpacity style={styles.followButton}>
               <Text style={styles.followText}>Follow</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.messageButton}>
+            <TouchableOpacity style={styles.messageButton} onPress={()=> handelNewChat()}>
               <Text style={styles.messageText}>Message</Text>
             </TouchableOpacity>
           </View>

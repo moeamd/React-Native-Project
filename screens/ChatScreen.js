@@ -14,21 +14,23 @@ import {
 import { Avatar, Card, TextInput } from "react-native-paper";
 import { useSelector } from "react-redux";
 import { BASE_URL } from "../config";
+import InboxSkeleton from "../Skeletons/InboxSkeleton";
 
 export const ChatScreen = ({ route }) => {
   const [message, setMessage] = useState("");
   const [data, setData] = useState([]);
+  const [loadingPage, setLoadingPage] = useState([]);
   // console.log(data);
 
   const { id, name, age, image, chatId } = route.params;
   const flatListRef = useRef(null);
   const { user, loading } = useSelector((state) => state.user);
-  const navigation = useNavigation()
-  console.log({id, name, age, image, chatId} );
-  
+  const navigation = useNavigation();
+  // console.log({ id, name, age, image, chatId });
 
   // console.log(id);
   // console.log(data);
+  
   //   const getToken = async () => {
   //   try {
   //     const token = await AsyncStorage.getItem("token");
@@ -52,15 +54,17 @@ export const ChatScreen = ({ route }) => {
   // get messages
   const fetchMessages = async () => {
     try {
+      setLoadingPage(true);
       const token = await AsyncStorage.getItem("token");
-      const res = await axios.get(
-        `${BASE_URL}/chats/${chatId}/messages`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await axios.get(`${BASE_URL}/chats/${chatId}/messages`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       // console.log("API Response:", res.data);
       setData(res.data || []);
     } catch (error) {
       console.log(error.response?.data || error.message);
+    } finally {
+      setLoadingPage(false);
     }
   };
 
@@ -91,6 +95,7 @@ export const ChatScreen = ({ route }) => {
     // console.log(user)
   );
 
+  if (loadingPage) return <InboxSkeleton />;
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#f2f6ff" }}
@@ -106,10 +111,7 @@ export const ChatScreen = ({ route }) => {
           });
         }}
       >
-        <Avatar.Image
-          size={50}
-          source={require("../assets/IMG-20210822-WA0009.jpg")}
-        />
+        <Avatar.Image size={50} source={{ uri: image }} />
         <Text style={styles.headerText}>{name}</Text>
       </TouchableOpacity>
 
@@ -187,7 +189,7 @@ export const ChatScreen = ({ route }) => {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     backgroundColor: "#ffffff",
     padding: 12,
@@ -196,7 +198,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   headerText: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: "600",
     marginLeft: 10,
     color: "#1a1a1a",
@@ -204,7 +206,7 @@ const styles = StyleSheet.create({
   card: {
     marginVertical: 5,
     borderRadius: 16,
-    paddingVertical: 6,
+    paddingVertical: 2,
     paddingHorizontal: 10,
     maxWidth: "75%",
   },

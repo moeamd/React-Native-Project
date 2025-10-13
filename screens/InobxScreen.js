@@ -7,6 +7,7 @@ import { Card, IconButton, TextInput } from "react-native-paper";
 import { useSelector } from "react-redux";
 import { useCallback } from "react";
 import { BASE_URL } from "../config";
+import InboxSkeleton from "../Skeletons/InboxSkeleton";
 
 export const InobxScreen = () => {
   const navigation = useNavigation();
@@ -15,23 +16,27 @@ export const InobxScreen = () => {
   const [frindsData, setFrindsData] = useState([]);
   const { user, loading } = useSelector((state) => state.user);
   const url = `${BASE_URL}/chats`;
+  const [loadingPage, setLoadingPage] = useState(true);
 
   // console.log(user);
 
   //  get all chats
   const fetchData = async () => {
     try {
+      setLoadingPage(true);
       const token = await AsyncStorage.getItem("token");
       const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setData(res.data);
       // console.log(res.data);
-      console.log("Response status:", res.status);
-      console.log("Response data:", res.data);
+      // console.log("Response status:", res.status);
+      // console.log("Response data:", res.data);
     } catch (error) {
       console.log(error.response?.data || error.message);
-    }
+    }finally  {
+    setLoadingPage(false); 
+  }
   };
   // get frinds ID
   const getMyFrindId = (chat, myId) => {
@@ -79,7 +84,7 @@ export const InobxScreen = () => {
   const mergeData = data.map((chat) => {
     const frindId = chat.members.find((id) => id !== user.id);
     const friend = frindsData.find((f) => f.id === frindId);
-    console.log(frindsData);
+    // console.log(frindsData);
     
     return {
       ...chat,
@@ -102,8 +107,10 @@ export const InobxScreen = () => {
     }
   }, [data, user]);
 
-  console.log(mergeData);
-  
+
+  if (loadingPage) return (<InboxSkeleton/>)
+    
+
   return (
     <View style={{ padding: 20 }}>
       <TextInput
@@ -125,7 +132,7 @@ export const InobxScreen = () => {
                   id: item.friend.id,
                   name: item.friend.name,
                   image:
-                    item.friend.userImageUrl ||
+                    item.friend.imageUrl ||
                     require("../assets/IMG-20210822-WA0009.jpg"),
                 })
               }
@@ -136,8 +143,8 @@ export const InobxScreen = () => {
                 left={(props) => (
                   <Image
                     source={
-                      item.friend?.userImageUrl
-                        ? { uri: item.friend.userImageUrl }
+                      item.friend?.imageUrl
+                        ? { uri: item.friend.imageUrl }
                         : require("../assets/IMG-20210822-WA0009.jpg")
                     }
                     style={{ width: 40, height: 40, borderRadius: 20 }}

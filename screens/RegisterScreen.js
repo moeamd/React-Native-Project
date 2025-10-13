@@ -12,6 +12,7 @@ import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import { BASE_URL } from "../config";
+import * as FileSystem from "expo-file-system";
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState("");
@@ -93,16 +94,13 @@ export default function RegisterScreen() {
   };
 
   // Pick image
-  const handlePickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+const handlePickImage = async (event) => {
+    const file = event.target.files[0]; // ده الـ File object
+    if (file) {
+      setImage(file); // خزن الملف مباشرة
+      console.log(file);
     }
-  };
+}
 
   //Send data to backend
   const handleRegister = async () => {
@@ -115,20 +113,15 @@ export default function RegisterScreen() {
       formData.append("email", email);
       formData.append("password", password);
 
-      if (image) {
-        formData.append("image", {
-          uri: image,
-          type: "image/jpeg",
-          name: "profile.jpg",
-        });
+    if (image) {
+        formData.append("image", image); // File object جاهز للرفع
       }
-
 
       await axios.post(`${BASE_URL}/auth/register`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      navigation.navigate("Auth", { screen: "SignIn" });
+      // navigation.navigate("Auth", { screen: "SignIn" });
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
@@ -199,14 +192,7 @@ export default function RegisterScreen() {
         ) : null}
 
         {/*Pick image */}
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: "#ccc" }]}
-          onPress={handlePickImage}
-        >
-          <Text style={styles.buttonText}>
-            {image ? "Image Selected " : "Select Profile Image"}
-          </Text>
-        </TouchableOpacity>
+        <input type="file" accept="image/*" onChange={handlePickImage} />
 
         <TouchableOpacity style={styles.button} onPress={handleRegister}>
           <Text style={styles.buttonText}>Sign up</Text>
