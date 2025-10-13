@@ -11,7 +11,7 @@ import {
 import axios from "axios";
 
 // ضع هنا IP جهازك بدل localhost لو على موبايل
-const API_URL = "http://192.168.1.6:5000/api/users";
+const API_URL = "http://localhost:5000/api/users";
 
 // دالة لجلب المستخدمين
 const fetchUsers = async () => {

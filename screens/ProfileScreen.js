@@ -11,7 +11,7 @@ import {
 import { useSelector } from "react-redux";
 import ProfileStats from "../components/statsSection";
 import AboutSection from "../components/aboutSection";
-import WorkExperienceSection from "../components/workExperienceSection";
+// import WorkExperienceSection from "../components/workExperienceSection";
 import PostCard from "../components/PostCard";
 
 export const ProfileScreen = ({ navigation, route }) => {

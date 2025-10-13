@@ -16,7 +16,7 @@ import { useSelector } from "react-redux";
 export const ChatScreen = ({ route }) => {
   const [message, setMessage] = useState("");
   const [data, setData] = useState([]);
-  console.log(data);
+  // console.log(data);
   
   const { id, name, age, image, chatId } = route.params;
   const flatListRef = useRef(null);
@@ -89,9 +89,10 @@ useFocusEffect(
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#f5f5f5" }}
+      style={{ flex: 1, backgroundColor: "#f2f6ff" }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      {/* Header */}
       <View style={styles.header}>
         <Avatar.Image
           size={50}
@@ -99,85 +100,73 @@ useFocusEffect(
         />
         <Text style={styles.headerText}>{name}</Text>
       </View>
-      <View style={{ flex: 1 }}>
-        <FlatList
-          ref={flatListRef}
-          data={data}
-          keyExtractor={(item, index) =>
-            item.id?.toString() || index.toString()
-          }
-          renderItem={({ item }) => (
-            <Card
-              style={[
-                styles.card,
-                item.senderId === user.id
-                  ? styles.myMessage
-                  : styles.otherMessage,
-              ]}
-            >
-              <Card.Content
+
+      {/* Messages */}
+      <FlatList
+        ref={flatListRef}
+        data={data}
+        keyExtractor={(item, index) =>
+          item.id?.toString() || index.toString()
+        }
+        renderItem={({ item }) => (
+          <Card
+            style={[
+              styles.card,
+              item.senderId === user.id
+                ? styles.myMessage
+                : styles.otherMessage,
+            ]}
+          >
+            <Card.Content>
+              <Text
                 style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  paddingEnd: 10,
+                  fontSize: 14,
+                  color: item.senderId === user.id ? "#fff" : "#1a1a1a",
                 }}
               >
-                <Text
-                  style={{
-                    fontSize: 8,
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                  }}
-                >
-                  {new Date(item.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-                <Text style={{ color: item.senderId !== id ? "#fff" : "#000" }}>
-                  {item.text}
-                </Text>
-              </Card.Content>
-            </Card>
-          )}
-          contentContainerStyle={{ paddingVertical: 10 }}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: true })
-          }
-        />
-      </View>
-      <View
-        style={{
-          marginTop: 20,
-          // position: "absolute",
-          // bottom: 0,
-          // left: 0,
-          // right: 0,
-          // padding: 10,
-          // // backgroundColor: "#fff",
-        }}
-      >
+                {item.text}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: item.senderId === user.id ? "#e0e0e0" : "#3d3c3cff",
+                  textAlign: "right",
+                  marginTop: 3,
+                }}
+              >
+                {new Date(item.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+            </Card.Content>
+          </Card>
+        )}
+        contentContainerStyle={{ paddingVertical: 10, paddingHorizontal: 10 }}
+        onContentSizeChange={() =>
+          flatListRef.current?.scrollToEnd({ animated: true })
+        }
+      />
+
+      {/* Input */}
+      <View style={styles.inputContainer}>
         <TextInput
-          style={{
-            borderWidth: 1,
-            borderColor: "#ddd",
-            borderRadius: 20,
-            paddingHorizontal: 15,
-            backgroundColor: "#fff",
-          }}
-          mode="outlined"
-          label="Write Your Message"
-          placeholder="Type something"
+          style={styles.input}
+          mode="flat"
+          placeholder="Type your message..."
           value={message}
           onChangeText={setMessage}
+          underlineColor="transparent"
+          activeUnderlineColor="transparent"
           right={
             <TextInput.Icon
               icon="send"
+              color="#fff"
               onPress={() => {
                 sendMessage();
                 setMessage("");
               }}
+              style={styles.sendIcon}
             />
           }
         />
@@ -187,28 +176,58 @@ useFocusEffect(
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: "#f5f5f5" },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    marginBottom: 10,
+    backgroundColor: "#ffffff",
+    padding: 12,
+    borderBottomWidth: 0.5,
+    borderColor: "#dbe4f0",
+    elevation: 2,
   },
-  headerText: { fontSize: 18, fontWeight: "600", marginLeft: 10 },
+  headerText: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginLeft: 10,
+    color: "#1a1a1a",
+  },
   card: {
     marginVertical: 5,
-    padding: 10,
-    borderRadius: 12,
-    maxWidth: "80%",
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    maxWidth: "75%",
   },
   myMessage: {
-    backgroundColor: "blue",
+    backgroundColor: "#2F80ED",
     alignSelf: "flex-end",
+    borderBottomRightRadius: 4,
   },
   otherMessage: {
-    backgroundColor: "red",
+    backgroundColor: "#e9eef8",
     alignSelf: "flex-start",
+    borderBottomLeftRadius: 4,
+  },
+  inputContainer: {
+    padding: 8,
+    backgroundColor: "#ffffff",
+    borderTopWidth: 0.5,
+    borderColor: "#dbe4f0",
+  },
+  input: {
+    backgroundColor: "#f1f4fb",
+    borderRadius: 30,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  sendIcon: {
+    backgroundColor: "#2F80ED",
+    borderRadius: 20,
+    marginRight: 6,
   },
 });
+
+export default ChatScreen;

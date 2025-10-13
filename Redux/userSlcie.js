@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const fetchUser = createAsyncThunk("user/me", async (token , {rejectWithValue}) => {
   try {
-    const res = await axios.get("http://192.168.1.17:5000/api/users/me", {
+    const res = await axios.get("http://localhost:5000/api/users/me", {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
@@ -16,10 +16,10 @@ export const fetchUser = createAsyncThunk("user/me", async (token , {rejectWithV
 });
 export const updateUser = createAsyncThunk(
   "user/update",
-  async (updatedData, { rejectWithValue }) => {
+  async ({updatedData,id}, { rejectWithValue }) => {
     try {
       const res = await axios.put(
-        "http://192.168.1.17:5000/api/users/update",
+        `http://localhost:5000/api/users/${id}`,
         updatedData,
         {
           headers: { "Content-Type": "application/json" },

@@ -12,7 +12,8 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useDispatch, useSelector } from "react-redux";
-import { updateUser } from "../redux/slices/userSlice";
+import { updateUser } from "../Redux/userSlcie";
+
 
 const EditProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -58,7 +59,7 @@ const EditProfileScreen = ({ navigation }) => {
     }
 
     try {
-      await dispatch(updateUser(formData)).unwrap();
+      await dispatch(updateUser({ updatedData: formData, id: user.id })).unwrap();
       Alert.alert("Success", "Profile updated");
       navigation.goBack();
     } catch (err) {
@@ -73,7 +74,7 @@ const EditProfileScreen = ({ navigation }) => {
           source={
             formData.imageUrl
               ? { uri: formData.imageUrl }
-              : require("../../assets/default-avatar.png")
+              : require("../assets/avatar.jpg")
           }
           style={styles.profileImage}
         />
