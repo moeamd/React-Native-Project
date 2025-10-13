@@ -1,16 +1,19 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native'
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from '../styles/HomeScreenStyle'
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import { token } from '../screens/HomeScreen';
+import { BASE_URL } from "../config";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchPosts } from '../features/fetchPosts';
 
 const AddPost = () => {
 
     const [postText, setPostText] = useState('');
-    const [image, setImage] = useState('');
+    const [image, setImage] = useState(null);
+    const [posts, setPosts] = useState([]);
 
     const uploadImage = async () => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -39,30 +42,24 @@ const AddPost = () => {
 
     const handleSubmitPost = async () => {
         const formData = new FormData();
-
         formData.append('title', 'Your title');
         formData.append('content', postText);
-
         if (image) {
             formData.append('image', {
-                uri: image.uri,
+                uri: image.uri || null,
                 name: image.fileName || "photo.jpg",
                 type: image.type || "image/jpeg",
             });
+        } else {
+            formData.append('image', null);
         }
 
-        console.log("Image URI: ", image.uri); // Check if the image URI is valid
-        console.log("FormData content: ", formData);
-
-
         try {
-            const response = await axios.post('http://192.168.11.174:5000/api/posts', formData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data',
-                },
+            const token = await AsyncStorage.getItem("token");
+            const response = await axios.post(`${BASE_URL}/posts`, formData, {
+                headers: {Authorization: `Bearer ${token}`},
             });
-
+            // setPosts((prev) => [...prev, response.data]);
             console.log('✅ Post submitted:', response.data);
             setPostText('');
             setImage(null);
@@ -73,7 +70,6 @@ const AddPost = () => {
             }
         }
     };
-
 
     return (
         <View style={styles.postSection}>
@@ -122,9 +118,6 @@ const AddPost = () => {
             />
             }
         </View>
-
-
-
     )
 }
 

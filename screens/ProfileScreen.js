@@ -12,50 +12,35 @@ import { useSelector, useDispatch } from "react-redux";
 import ProfileStats from "../components/statsSection";
 import AboutSection from "../components/aboutSection";
 import PostCard from "../components/PostCard";
-<<<<<<< Updated upstream
-import { useDispatch } from "react-redux";
-
-=======
 import { fetchUser, fetchUserById } from "../Redux/userSlcie";
 import AsyncStorage from "@react-native-async-storage/async-storage";
->>>>>>> Stashed changes
+import { BASE_URL } from "../config";
+import axios from "axios";
 
 export const ProfileScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
 
-<<<<<<< Updated upstream
-  const { user: authUser, token } = useSelector((state) => state.auth);
-  const { user: fetchedUser, loading } = useSelector((state) => state.user);
-
-  const viewedUserId = route?.params?.userId || null;
-  const isMyProfile = !viewedUserId || viewedUserId === authUser?.id;
- useEffect(() => {
-=======
   const { user: authUser } = useSelector((state) => state.auth);
   const { user: fetchedUser, viewedUser, loading } = useSelector(
     (state) => state.user
   );
 
-  const [token, setToken] = useState(null); // ✅ خزننا التوكن هنا
+  const [token, setToken] = useState(null);
 
   const viewedUserId = route?.params?.userId || null;
   const isMyProfile = !viewedUserId || viewedUserId === authUser?.id;
 
-  // ✅ جلب التوكن من AsyncStorage أول ما الصفحة تفتح
   useEffect(() => {
     const loadToken = async () => {
       const storedToken = await AsyncStorage.getItem("token");
-      console.log("Loaded token:", storedToken);
       setToken(storedToken);
     };
     loadToken();
   }, []);
 
-  // ✅ تحميل بيانات المستخدم بناءً على الحالة (صفحتي / صفحة مستخدم تاني)
   useEffect(() => {
-    if (!token) return; // انتظري التوكن الأول
+    if (!token) return;
 
->>>>>>> Stashed changes
     if (isMyProfile) {
       dispatch(fetchUser(token));
       console.log("Fetching current user with token:", token);
@@ -65,18 +50,32 @@ export const ProfileScreen = ({ navigation, route }) => {
     }
   }, [dispatch, viewedUserId, isMyProfile, token]);
 
-<<<<<<< Updated upstream
-  const profileData = isMyProfile ? fetchedUser || authUser : fetchedUser;
-=======
   useEffect(() => {
     if (!isMyProfile && viewedUser) {
-      console.log("Updated viewed User successfully:", viewedUser);
+      console.log("User data loaded:", viewedUser);
     }
   }, [viewedUser]);
 
   const profileData = isMyProfile ? fetchedUser || authUser : viewedUser;
 
->>>>>>> Stashed changes
+  const handelNewChat = async () => {
+    try {
+      const members = [profileData.id, fetchedUser.id];
+      const token = await AsyncStorage.getItem("token");
+      const res = await axios.post(`${BASE_URL}/chats`, { members }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      navigation.navigate("ChatScreen", {
+        chatId: res.data.id,
+        id: profileData.id,
+        name: profileData.name,
+        image: profileData.imageUrl,
+      });
+    } catch (err) {
+      console.log("From handelNewChat:", err);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -121,7 +120,7 @@ export const ProfileScreen = ({ navigation, route }) => {
             <TouchableOpacity style={styles.followButton}>
               <Text style={styles.followText}>Follow</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.messageButton}>
+            <TouchableOpacity style={styles.messageButton} onPress={handelNewChat}>
               <Text style={styles.messageText}>Message</Text>
             </TouchableOpacity>
           </View>
@@ -129,7 +128,6 @@ export const ProfileScreen = ({ navigation, route }) => {
       </View>
 
       {/* Stats */}
-      {console.log("Following number:", profileData.followingNum)}
       <ProfileStats
         posts={profileData.postsCount}
         followers={profileData.followersNum}

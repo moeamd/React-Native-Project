@@ -2,12 +2,13 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import {ProfileScreen} from "../screens/ProfileScreen";
+import { ProfileScreen } from "../screens/ProfileScreen";
 import FollowScreen from "../screens/FollowScreen";
-import {InobxScreen} from "../screens/InobxScreen";
-import {ChatScreen} from "../screens/ChatScreen";
-import {HomeScreen}  from "../screens/HomeScreen";
-import ProfileStack from "./profileStack"
+import { InobxScreen } from "../screens/InobxScreen";
+import { ChatScreen } from "../screens/ChatScreen";
+import { HomeScreen } from "../screens/HomeScreen";
+import ProfileStack from "./profileStack";
+import { useSelector } from "react-redux";
 
 const Tabs = createBottomTabNavigator();
 const InboxStack = createNativeStackNavigator();

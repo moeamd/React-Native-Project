@@ -1,17 +1,19 @@
 import { View, Text, Image, TouchableOpacity, TextInput, TouchableWithoutFeedback } from 'react-native'
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { styles } from '../styles/HomeScreenStyle'
 import CommentCard from './CommentCard';
 import UserCard from './UserCard';
 import axios from 'axios';
-import { token } from '../screens/HomeScreen';
+import * as Clipboard from 'expo-clipboard';
+import { BASE_URL } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSelector } from 'react-redux';
 
 const PostCard = ({ post }) => {
 
     const [menuVisible, setMenuVisible] = useState(false);
     const [showCommentBox, setShowCommentBox] = useState(false);
-
     const [commentText, setCommentText] = useState('');
 
     const handleCommentPress = () => {
@@ -20,21 +22,17 @@ const PostCard = ({ post }) => {
 
     const handleSubmitComment = async () => {
         try {
+            const token = await AsyncStorage.getItem("token");
             const response = await axios.post(
-                `http://192.168.11.174:5000/api/comments/${post.id}`,
-                
+                `${BASE_URL}/comments/${post.id}`,
                 { content: commentText }, // plain JSON body
-                
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                { headers: { Authorization: `Bearer ${token}`, }, }
             );
 
             console.log('Comment submitted:', response.data);
             setCommentText('');
             setShowCommentBox(false);
+            handleCommentFetch();
         } catch (error) {
             if (error.response) {
                 console.error('Server error:', error.response.status, error.response.data);
@@ -45,13 +43,102 @@ const PostCard = ({ post }) => {
             }
         }
     };
+    const handleUpdatePost = async (post) => {
+        try {
+            // Get saved token
+            const token = await AsyncStorage.getItem("token");
 
-    const handleLikePress = () => {
+            const response = await axios.put(
+                `${BASE_URL}/posts/${post._id}`,
+                {
+                    title: post.title,
+                    content: post.content,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            )
+            console.log("Post updated successfully:", response.data);
+
+
+        } catch (error) {
+            console.error("Error updating post:", error.message);
+        }
+    };
+
+    const handleCopyLink = async (postId) => {
+        try {
+            const postLink = `${BASE_URL}/posts/${postId}`;
+            await Clipboard.setStringAsync(postLink);
+            Alert.alert("Link Copied", "The post link has been copied to your clipboard!");
+        } catch (error) {
+            console.error("Error copying link:", error.message);
+        }
+    };
+
+    const handleDeletePost = async (postId) => {
+        try {
+            // Get token from AsyncStorage
+            const token = await AsyncStorage.getItem("token");
+
+            // Send delete request
+            const response = await axios.delete(
+                `${BASE_URL}/posts/${postId}`,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            console.log("Post deleted successfully:", response.data);
+
+        } catch (error) {
+            console.error("Error deleting post:", error.message);
+        }
+    }
+
+    const handleReportPost = () => {
 
     }
+
+    const handleLikePress = () => {
+    }
+
+    const [comments, setComments] = useState([]);
+    const handleCommentFetch = async () => {
+        const postId = post.id;
+        useEffect(() => {
+            const fetchData = async () => {
+                try {
+                    //192.168.11.174    
+                    console.log('Fetching comments for postId:', postId);
+                    const token = await AsyncStorage.getItem("token");
+                    const response = await axios.get(`${BASE_URL}/comments/${postId}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+
+                    setComments(response.data)
+                    console.log(comments)
+                } catch (error) {
+                    console.error('Error geting comments:', error.message);
+                }
+            }
+            fetchData();
+        }, [])
+    }
+    handleCommentFetch();
+
+
+    const { user, loading } = useSelector((state) => state.user);
+    const isOwner = user && post && (user.id === post.authorId);
+    console.log("user" + user.id);
+    console.log("post" + post.authorId);
     return (
-        <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
-            <View style={[styles.postContainer, { position: 'relative' }]}>
+        <TouchableWithoutFeedback style={{ flex: 1, zIndex: 0 }} onPress={() => setMenuVisible(false)}>
+            <View style={[styles.postContainer, { position: 'relative' }, { ...StyleSheet.absoluteFillObject }]}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <UserCard props={post} />
                     <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
@@ -61,26 +148,16 @@ const PostCard = ({ post }) => {
                         />
                     </TouchableOpacity>
                     {menuVisible && (
-                        <View 
-                        style={{
-                            position: 'absolute',
-                            top: 45, // adjust based on icon size
-                            right: 0,
-                            width: 100,
-                            backgroundColor: 'white',
-                            borderRadius: 8,
-                            elevation: 5,
-                            borderWidth: 1,
-                            borderColor: '#ccc',
-                            padding: 10,
-                            zIndex: 50
-                        }}>
-                            <TouchableOpacity onPress={() => {
-                                handleUpdatePost(post);
-                                setMenuVisible(false);
-                            }}>
-                                <Text style={{ paddingVertical: 6 }}>Edit</Text>
-                            </TouchableOpacity>
+                        <View
+                            style={styles.menuDropDown}>
+                            {isOwner && (
+                                <TouchableOpacity onPress={() => {
+                                    handleUpdatePost(post);
+                                    setMenuVisible(false);
+                                }}>
+                                    <Text style={{ paddingVertical: 6 }}>Edit</Text>
+                                </TouchableOpacity>
+                            )}
 
                             <TouchableOpacity onPress={() => {
                                 handleCopyLink(post.id);
@@ -95,13 +172,14 @@ const PostCard = ({ post }) => {
                             }}>
                                 <Text style={{ paddingVertical: 6 }}>Report Post</Text>
                             </TouchableOpacity>
-
-                            <TouchableOpacity onPress={() => {
-                                handleDeletePost(post.id);
-                                setMenuVisible(false);
-                            }}>
-                                <Text style={{ paddingVertical: 6, color: 'red' }}>Delete</Text>
-                            </TouchableOpacity>
+                            {isOwner && (
+                                <TouchableOpacity onPress={() => {
+                                    handleDeletePost(post.id);
+                                    setMenuVisible(false);
+                                }}>
+                                    <Text style={{ paddingVertical: 6, color: 'red' }}>Delete</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     )}
                 </View>
@@ -116,15 +194,11 @@ const PostCard = ({ post }) => {
                     }
                 </View>
                 <View style={styles.engagementRow}>
-                    <TouchableOpacity onPress={handleLikePress}>
-                        <Text>❤️ {post.likes}</Text>
+                    <TouchableOpacity onPress={() => { handleCommentPress(); handleCommentFetch(); }}>
+                        <Text>💬{Array.isArray(comments) ? comments.length : 0} </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={handleCommentPress}>
-                        <Text>💬 135</Text>
-                    </TouchableOpacity>
 
-                    <Text>🔄 Share</Text>
                 </View>
                 {showCommentBox && (
                     <View>
@@ -136,7 +210,8 @@ const PostCard = ({ post }) => {
                                 value={commentText}
                                 onChangeText={setCommentText}
                             />
-                            <TouchableOpacity onPress={handleSubmitComment}>
+                            <TouchableOpacity onPress={() => { handleSubmitComment(); handleCommentFetch(); }}>
+
                                 <Text style={styles.submitButton}>Post</Text>
                             </TouchableOpacity>
                         </View>

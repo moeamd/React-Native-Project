@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -9,21 +9,28 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import { Avatar, Card, TextInput } from "react-native-paper";
 import { useSelector } from "react-redux";
+import { BASE_URL } from "../config";
+import InboxSkeleton from "../Skeletons/InboxSkeleton";
 
 export const ChatScreen = ({ route }) => {
   const [message, setMessage] = useState("");
   const [data, setData] = useState([]);
-  console.log(data);
-  
+  const [loadingPage, setLoadingPage] = useState([]);
+  // console.log(data);
+
   const { id, name, age, image, chatId } = route.params;
   const flatListRef = useRef(null);
-  const {user , loading} = useSelector((state)=>state.user)
+  const { user, loading } = useSelector((state) => state.user);
+  const navigation = useNavigation();
+  // console.log({ id, name, age, image, chatId });
 
   // console.log(id);
   // console.log(data);
+  
   //   const getToken = async () => {
   //   try {
   //     const token = await AsyncStorage.getItem("token");
@@ -47,15 +54,17 @@ export const ChatScreen = ({ route }) => {
   // get messages
   const fetchMessages = async () => {
     try {
+      setLoadingPage(true);
       const token = await AsyncStorage.getItem("token");
-      const res = await axios.get(
-        `http://localhost:5000/api/chats/${chatId}/messages`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await axios.get(`${BASE_URL}/chats/${chatId}/messages`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       // console.log("API Response:", res.data);
       setData(res.data || []);
     } catch (error) {
       console.log(error.response?.data || error.message);
+    } finally {
+      setLoadingPage(false);
     }
   };
 
@@ -64,7 +73,7 @@ export const ChatScreen = ({ route }) => {
     try {
       const token = await AsyncStorage.getItem("token");
       const res = await axios.post(
-        `http://localhost:5000/api/chats/${chatId}/messages`,
+        `${BASE_URL}/chats/${chatId}/messages`,
         { text: message },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -78,106 +87,98 @@ export const ChatScreen = ({ route }) => {
     }
   };
 
-useFocusEffect(
-  useCallback(() => {
-    // if (!chatId || !user?.id) return ;
-    fetchMessages();
-  }, [chatId])
+  useFocusEffect(
+    useCallback(() => {
+      // if (!chatId || !user?.id) return ;
+      fetchMessages();
+    }, [chatId])
     // console.log(user)
-    
-);
+  );
 
+  if (loadingPage) return <InboxSkeleton />;
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#f5f5f5" }}
+      style={{ flex: 1, backgroundColor: "#f2f6ff" }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.header}>
-        <Avatar.Image
-          size={50}
-          source={require("../assets/IMG-20210822-WA0009.jpg")}
-        />
-        <Text style={styles.headerText}>{name}</Text>
-      </View>
-      <View style={{ flex: 1 }}>
-        <FlatList
-          ref={flatListRef}
-          data={data}
-          keyExtractor={(item, index) =>
-            item.id?.toString() || index.toString()
-          }
-          renderItem={({ item }) => (
-            <Card
-              style={[
-                styles.card,
-                item.senderId === user.id
-                  ? styles.myMessage
-                  : styles.otherMessage,
-              ]}
-            >
-              <Card.Content
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  paddingEnd: 10,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 8,
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                  }}
-                >
-                  {new Date(item.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-                <Text style={{ color: item.senderId !== id ? "#fff" : "#000" }}>
-                  {item.text}
-                </Text>
-              </Card.Content>
-            </Card>
-          )}
-          contentContainerStyle={{ paddingVertical: 10 }}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: true })
-          }
-        />
-      </View>
-      <View
-        style={{
-          marginTop: 20,
-          // position: "absolute",
-          // bottom: 0,
-          // left: 0,
-          // right: 0,
-          // padding: 10,
-          // // backgroundColor: "#fff",
+      {/* Header */}
+      <TouchableOpacity
+        style={styles.header}
+        onPress={() => {
+          navigation.navigate("Profile", {
+            screen: "ProfileMain",
+            params: { userId: id },
+          });
         }}
       >
+        <Avatar.Image size={50} source={{ uri: image }} />
+        <Text style={styles.headerText}>{name}</Text>
+      </TouchableOpacity>
+
+      {/* Messages */}
+      <FlatList
+        ref={flatListRef}
+        data={data}
+        keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+        renderItem={({ item }) => (
+          <Card
+            style={[
+              styles.card,
+              item.senderId === user.id
+                ? styles.myMessage
+                : styles.otherMessage,
+            ]}
+          >
+            <Card.Content>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: item.senderId === user.id ? "#fff" : "#1a1a1a",
+                }}
+              >
+                {item.text}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: item.senderId === user.id ? "#e0e0e0" : "#3d3c3cff",
+                  textAlign: "right",
+                  marginTop: 3,
+                }}
+              >
+                {new Date(item.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+            </Card.Content>
+          </Card>
+        )}
+        contentContainerStyle={{ paddingVertical: 10, paddingHorizontal: 10 }}
+        onContentSizeChange={() =>
+          flatListRef.current?.scrollToEnd({ animated: true })
+        }
+      />
+
+      {/* Input */}
+      <View style={styles.inputContainer}>
         <TextInput
-          style={{
-            borderWidth: 1,
-            borderColor: "#ddd",
-            borderRadius: 20,
-            paddingHorizontal: 15,
-            backgroundColor: "#fff",
-          }}
-          mode="outlined"
-          label="Write Your Message"
-          placeholder="Type something"
+          style={styles.input}
+          mode="flat"
+          placeholder="Type your message..."
           value={message}
           onChangeText={setMessage}
+          underlineColor="transparent"
+          activeUnderlineColor="transparent"
           right={
             <TextInput.Icon
               icon="send"
+              color="#fff"
               onPress={() => {
                 sendMessage();
                 setMessage("");
               }}
+              style={styles.sendIcon}
             />
           }
         />
@@ -187,28 +188,58 @@ useFocusEffect(
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: "#f5f5f5" },
   header: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
-    padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    marginBottom: 10,
+    backgroundColor: "#ffffff",
+    padding: 12,
+    borderBottomWidth: 0.5,
+    borderColor: "#dbe4f0",
+    elevation: 2,
   },
-  headerText: { fontSize: 18, fontWeight: "600", marginLeft: 10 },
+  headerText: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginLeft: 10,
+    color: "#1a1a1a",
+  },
   card: {
     marginVertical: 5,
-    padding: 10,
-    borderRadius: 12,
-    maxWidth: "80%",
+    borderRadius: 16,
+    paddingVertical: 2,
+    paddingHorizontal: 10,
+    maxWidth: "75%",
   },
   myMessage: {
-    backgroundColor: "blue",
+    backgroundColor: "#2F80ED",
     alignSelf: "flex-end",
+    borderBottomRightRadius: 4,
   },
   otherMessage: {
-    backgroundColor: "red",
+    backgroundColor: "#e9eef8",
     alignSelf: "flex-start",
+    borderBottomLeftRadius: 4,
+  },
+  inputContainer: {
+    padding: 8,
+    backgroundColor: "#ffffff",
+    borderTopWidth: 0.5,
+    borderColor: "#dbe4f0",
+  },
+  input: {
+    backgroundColor: "#f1f4fb",
+    borderRadius: 30,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  sendIcon: {
+    backgroundColor: "#2F80ED",
+    borderRadius: 20,
+    marginRight: 6,
   },
 });
+
+export default ChatScreen;

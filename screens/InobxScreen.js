@@ -5,32 +5,38 @@ import React, { useEffect, useState } from "react";
 import { View, Text, Image, TouchableOpacity, FlatList } from "react-native";
 import { Card, IconButton, TextInput } from "react-native-paper";
 import { useSelector } from "react-redux";
-import { useCallback } from 'react';
+import { useCallback } from "react";
+import { BASE_URL } from "../config";
+import InboxSkeleton from "../Skeletons/InboxSkeleton";
 
 export const InobxScreen = () => {
   const navigation = useNavigation();
   const [data, setData] = useState([]);
   const [myData, setMyData] = useState([]);
   const [frindsData, setFrindsData] = useState([]);
-  const {user , loading} = useSelector((state)=>state.user )
-  const url = "http://localhost:5000/api/chats";
-  
+  const { user, loading } = useSelector((state) => state.user);
+  const url = `${BASE_URL}/chats`;
+  const [loadingPage, setLoadingPage] = useState(true);
+
   // console.log(user);
-  
+
   //  get all chats
   const fetchData = async () => {
     try {
+      setLoadingPage(true);
       const token = await AsyncStorage.getItem("token");
       const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setData(res.data);
       // console.log(res.data);
-      console.log("Response status:", res.status);
-console.log("Response data:", res.data);
+      // console.log("Response status:", res.status);
+      // console.log("Response data:", res.data);
     } catch (error) {
       console.log(error.response?.data || error.message);
-    }
+    }finally  {
+    setLoadingPage(false); 
+  }
   };
   // get frinds ID
   const getMyFrindId = (chat, myId) => {
@@ -43,58 +49,67 @@ console.log("Response data:", res.data);
   // console.log(frindIds);
 
   // get Frinds Data
-  const getFrindsData = async () => {
-    const frindIds = getMyFrindId(data, user.id);
-    if (frindIds.length === 0) return;
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const res = await Promise.all(
-        frindIds.map((id) =>
-          axios.get(`http://localhost:5000/api/users/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-        )
-      );
-      const data = res.map((r) => r.data.user);
-      setFrindsData(data);
-      // console.log(data);
-    } catch (err) {
-      console.error(err);
+ const getFrindsData = async () => {
+  const frindIds = getMyFrindId(data, user.id);
+  if (frindIds.length === 0) return;
+
+  const token = await AsyncStorage.getItem("token");
+  if (!token) {
+    console.log("Token not found, cannot fetch friends data");
+    return;
+  }
+
+  try {
+    const res = await Promise.all(
+      frindIds.map((id) =>
+        axios.get(`${BASE_URL}/users/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      )
+    );
+    const data = res.map((r) => r.data.user);
+    setFrindsData(data);
+  } catch (err) {
+    if (err.response) {
+      console.error("Server error:", err.response.status, err.response.data);
+    } else if (err.request) {
+      console.error("Network error:", err.message);
+    } else {
+      console.error("Other error:", err.message);
     }
-  };
+  }
+};
 
   // merge data
   const mergeData = data.map((chat) => {
-
     const frindId = chat.members.find((id) => id !== user.id);
-    const friend  = frindsData.find((f) => f.id === frindId);
-
+    const friend = frindsData.find((f) => f.id === frindId);
+    // console.log(frindsData);
+    
     return {
       ...chat,
       friend: friend || {},
     };
   });
 
+  useFocusEffect(
+    useCallback(() => {
+      const loadData = async () => {
+        await fetchData();
+      };
+      loadData();
+    }, [user])
+  );
 
-useFocusEffect(
-  useCallback(() => {
-    const loadData = async () => {
-      await fetchData();
-    };
-    loadData();
-  }, [user])
-);
-
-
-useEffect(() => {
-  if (data.length > 0 && user?.id) {
-    getFrindsData();
-  }
-}, [data, user]);
+  useEffect(() => {
+    if (data.length > 0 && user?.id) {
+      getFrindsData();
+    }
+  }, [data, user]);
 
 
-
-
+  if (loadingPage) return (<InboxSkeleton/>)
+    
 
   return (
     <View style={{ padding: 20 }}>
@@ -105,58 +120,54 @@ useEffect(() => {
         underlineColor="#2ca0e8ff"
       />
 
-        <View style={{ flex: 1 }}>
-          <FlatList
-            data={mergeData}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("ChatScreen", {
-                    chatId:item.id,
-                    id: item.friend.id,
-                    name: item.friend.name,
-                    image:
-                      item.friend.userImageUrl ||
-                      require("../assets/IMG-20210822-WA0009.jpg"),
-                  })
-                }
-              >
-                <Card.Title
-                  title={item.friend?.name || "Unknown"}
-                  subtitle={item.lastMessage || ""}
-                  left={(props) => (
-                    <Image
-                      source={
-                        item.friend?.userImageUrl
-                          ? { uri: item.friend.userImageUrl }
-                          : require("../assets/IMG-20210822-WA0009.jpg")
-                      }
-                      style={{ width: 40, height: 40, borderRadius: 20 }}
-                    />
-                  )}
-                  right={(props) => (
-                    <View style={{ display: "flex", alignItems: "center" }}>
-                      <Text>
-                        {item.lastMessageAt
-                          ? new Date(item.lastMessageAt).toLocaleTimeString(
-                              [],
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )
-                          : ""}
-                      </Text>
-                    </View>
-                  )}
-                  titleStyle={{ fontWeight: "bold", fontSize: 16 }}
-                />
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-
+      <View style={{ flex: 1 }}>
+        <FlatList
+          data={mergeData}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("ChatScreen", {
+                  chatId: item.id,
+                  id: item.friend.id,
+                  name: item.friend.name,
+                  image:
+                    item.friend.imageUrl ||
+                    require("../assets/IMG-20210822-WA0009.jpg"),
+                })
+              }
+            >
+              <Card.Title
+                title={item.friend?.name || "Unknown"}
+                subtitle={item.lastMessage || ""}
+                left={(props) => (
+                  <Image
+                    source={
+                      item.friend?.imageUrl
+                        ? { uri: item.friend.imageUrl }
+                        : require("../assets/IMG-20210822-WA0009.jpg")
+                    }
+                    style={{ width: 40, height: 40, borderRadius: 20 }}
+                  />
+                )}
+                right={(props) => (
+                  <View style={{ display: "flex", alignItems: "center" }}>
+                    <Text>
+                      {item.lastMessageAt
+                        ? new Date(item.lastMessageAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : ""}
+                    </Text>
+                  </View>
+                )}
+                titleStyle={{ fontWeight: "bold", fontSize: 16 }}
+              />
+            </TouchableOpacity>
+          )}
+        />
+      </View>
     </View>
   );
 };
