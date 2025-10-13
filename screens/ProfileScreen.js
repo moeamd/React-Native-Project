@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,69 +8,74 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import ProfileStats from "../components/statsSection";
 import AboutSection from "../components/aboutSection";
-// import WorkExperienceSection from "../components/workExperienceSection";
 import PostCard from "../components/PostCard";
-import { useDispatch } from "react-redux";
 import { fetchUser, fetchUserById } from "../Redux/userSlcie";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../config";
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
 
 export const ProfileScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
 
-  const { user: authUser, token } = useSelector((state) => state.auth);
-  const { user: fetchedUser, viewedUser ,loading } = useSelector((state) => state.user);
+  const { user: authUser } = useSelector((state) => state.auth);
+  const { user: fetchedUser, viewedUser, loading } = useSelector(
+    (state) => state.user
+  );
+
+  const [token, setToken] = useState(null);
 
   const viewedUserId = route?.params?.userId || null;
   const isMyProfile = !viewedUserId || viewedUserId === authUser?.id;
-  
 
-  const handelNewChat = async ()=> {
-    try {
-      console.log(profileData.id);
-      console.log(fetchedUser.id);
-      const members = [profileData.id ,fetchedUser.id]
-      const token = await AsyncStorage.getItem("token");
-      const res = await axios.post(`${BASE_URL}/chats`, {members},{
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log(res.data);
-
-        navigation.navigate("ChatScreen", {
-                  chatId: res.data.id,
-                  id: profileData.id,
-                  name: profileData.name,
-                  image:profileData.imageUrl 
-                })
-    }catch(err) {
-      console.log("From handelNewChat" ,err);
-      
-    }finally{
-
-    }
-  }
-  
   useEffect(() => {
+    const loadToken = async () => {
+      const storedToken = await AsyncStorage.getItem("token");
+      setToken(storedToken);
+    };
+    loadToken();
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+
     if (isMyProfile) {
-      if (token) {
-        dispatch(fetchUser(token));
-      }
-    } else {
+      dispatch(fetchUser(token));
+      console.log("Fetching current user with token:", token);
+    } else if (viewedUserId) {
       dispatch(fetchUserById(viewedUserId));
+      console.log("Fetching viewed user by ID:", viewedUserId);
     }
   }, [dispatch, viewedUserId, isMyProfile, token]);
-useEffect(() => {
-  if (!isMyProfile && viewedUser) {
-    console.log("تم تحميل بيانات المستخدم:", viewedUser);
-  }
-}, [viewedUser]);
-  
+
+  useEffect(() => {
+    if (!isMyProfile && viewedUser) {
+      console.log("User data loaded:", viewedUser);
+    }
+  }, [viewedUser]);
+
   const profileData = isMyProfile ? fetchedUser || authUser : viewedUser;
+
+  const handelNewChat = async () => {
+    try {
+      const members = [profileData.id, fetchedUser.id];
+      const token = await AsyncStorage.getItem("token");
+      const res = await axios.post(`${BASE_URL}/chats`, { members }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      navigation.navigate("ChatScreen", {
+        chatId: res.data.id,
+        id: profileData.id,
+        name: profileData.name,
+        image: profileData.imageUrl,
+      });
+    } catch (err) {
+      console.log("From handelNewChat:", err);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -92,7 +97,11 @@ useEffect(() => {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{ uri: profileData.imageUrl }}
+          source={
+            profileData.imageUrl
+              ? { uri: profileData.imageUrl }
+              : require("../assets/avatar.jpg")
+          }
           style={styles.profileImage}
         />
         <Text style={styles.name}>{profileData.name}</Text>
@@ -111,7 +120,7 @@ useEffect(() => {
             <TouchableOpacity style={styles.followButton}>
               <Text style={styles.followText}>Follow</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.messageButton} onPress={()=> handelNewChat()}>
+            <TouchableOpacity style={styles.messageButton} onPress={handelNewChat}>
               <Text style={styles.messageText}>Message</Text>
             </TouchableOpacity>
           </View>
@@ -121,7 +130,6 @@ useEffect(() => {
       {/* Stats */}
       <ProfileStats
         posts={profileData.postsCount}
-        photos={0}
         followers={profileData.followersNum}
         following={profileData.followingNum}
       />

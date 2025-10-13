@@ -12,12 +12,13 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useDispatch, useSelector } from "react-redux";
-import { updateUser } from "../Redux/userSlcie";
-
+import { updateUser, fetchUser } from "../Redux/userSlcie";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const EditProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { user, loading } = useSelector((state) => state.user);
+  const [token, setToken] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,6 +26,16 @@ const EditProfileScreen = ({ navigation }) => {
     bio: "",
     imageUrl: "",
   });
+
+  // ✅ جلب التوكن من AsyncStorage
+  useEffect(() => {
+    const loadToken = async () => {
+      const storedToken = await AsyncStorage.getItem("token");
+      console.log("Loaded token:", storedToken);
+      setToken(storedToken);
+    };
+    loadToken();
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -60,6 +71,14 @@ const EditProfileScreen = ({ navigation }) => {
 
     try {
       await dispatch(updateUser({ updatedData: formData, id: user.id })).unwrap();
+
+      if (token) {
+        await dispatch(fetchUser(token));
+        console.log("Updated user successfully with token:", token);
+      } else {
+        console.log("⚠️ Token is null");
+      }
+
       Alert.alert("Success", "Profile updated");
       navigation.goBack();
     } catch (err) {
