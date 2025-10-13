@@ -1,22 +1,26 @@
 import React, { useEffect, useState } from 'react'
-import { Image, ScrollView, Text, View } from 'react-native'
+import { FlatList, Image, ScrollView, Text, View } from 'react-native'
 import { styles } from '../styles/HomeScreenStyle';
 import StoryCard from '../components/StoryCard.js';
 import PostCard from '../components/PostCard.js';
 import AddPost from '../components/AddPost.js';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from "../config";
 
 export const HomeScreen = () => {
   const [posts, setPosts] = useState([]);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-         const token = await AsyncStorage.getItem("token");
+        const token = await AsyncStorage.getItem("token");
         //192.168.11.174
-        const response = await axios.get(`http://${myLocalHost}:5000/api/posts`, {
-          headers: { Authorization: `Bearer ${token}`, },
+        console.log(token);
+        const response = await axios.get(`${BASE_URL}/posts`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         setPosts(response.data)
@@ -26,7 +30,7 @@ export const HomeScreen = () => {
       }
     }
     fetchData();
-  }, [token])
+  }, [])
 
   return (
     <ScrollView style={styles.container}>
@@ -36,7 +40,7 @@ export const HomeScreen = () => {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.storySection}>
         <View style={styles.storyItem}>
           <Image
-            source={user.imageUrl}
+            source={require('../assets/avatar.jpg')}
             style={styles.storyCircle}
           />
           <Text style={styles.storyText}>add Story</Text>
@@ -49,9 +53,12 @@ export const HomeScreen = () => {
 
       </ScrollView>
       {
-        posts.map((post, index) => (
-          <PostCard key={index} post={post} />
-        ))
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id.toString()} // or item._id if using MongoDB
+          renderItem={({ item }) => <PostCard post={item} />}
+          showsVerticalScrollIndicator={false}
+        />
       }
 
     </ScrollView >

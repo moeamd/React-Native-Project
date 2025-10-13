@@ -5,7 +5,8 @@ import React, { useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
 import UserCard from './UserCard'
 import axios from 'axios';
-import { myLocalHost } from '../localHost';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../config';
 
 const CommentCard = ({postId}) => {
     const [comments, setComments] = useState([]);
@@ -15,8 +16,10 @@ const CommentCard = ({postId}) => {
             try {
                 //192.168.11.174
                 console.log('Fetching comments for postId:', postId);
+
                 const token = await AsyncStorage.getItem("token");
-                const response = await axios.get(`http://${myLocalHost}:5000/api/comments/${postId}`, {
+
+                const response = await axios.get(`${BASE_URL}/comments/${postId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

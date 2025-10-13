@@ -1,19 +1,27 @@
 import React from 'react'
-import { Image, Text, View } from 'react-native'
+import { Image, Text, TouchableOpacity, View } from 'react-native'
 import { styles } from '../styles/HomeScreenStyle'
+import { useNavigation } from '@react-navigation/native'
 
 const UserCard = ({ props }) => {
+    const navigation = useNavigation()
+
     return (
-        <View style={styles.postHeader}>
+        <TouchableOpacity style={styles.postHeader} onPress={()=> {
+            navigation.navigate("Profile", {
+            screen: "ProfileMain",
+            params: { userId: props.id },
+            });
+        }}>
             <Image
-                source={{ url: props.userImageUrl }} // Replace with actual image URL
+                source={{ uri: props.userImageUrl }} // Replace with actual image URL
                 style={styles.userCircle}
             />
             <View style={styles.postNameTime}>
                 <Text style={styles.postAuthor}> {props.authorName}</Text>
-                <View><Text>  {props.createdAt?.toLocaleString()} </Text></View>
+                <View><Text>{new Date(props.createdAt).toLocaleString()}</Text></View>
             </View>
-        </View>
+        </TouchableOpacity>
     )
 }
 

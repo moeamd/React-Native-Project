@@ -6,6 +6,7 @@ import { View, Text, Image, TouchableOpacity, FlatList } from "react-native";
 import { Card, IconButton, TextInput } from "react-native-paper";
 import { useSelector } from "react-redux";
 import { useCallback } from 'react';
+import { BASE_URL } from "../config";
 
 export const InobxScreen = () => {
   const navigation = useNavigation();
@@ -13,7 +14,7 @@ export const InobxScreen = () => {
   const [myData, setMyData] = useState([]);
   const [frindsData, setFrindsData] = useState([]);
   const {user , loading} = useSelector((state)=>state.user )
-  const url = "http://localhost:5000/api/chats";
+  const url = `${BASE_URL}/chats`;
   
   // console.log(user);
   

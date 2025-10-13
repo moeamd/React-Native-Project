@@ -6,7 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { fetchUser } from "../Redux/userSlcie";
-import { myLocalHost } from "./HomeScreen";
+import { BASE_URL } from "../config";
 
 const LoginScreen = ({ setIsLoggedIn }) => {
   const navigation = useNavigation();
@@ -16,6 +16,7 @@ const LoginScreen = ({ setIsLoggedIn }) => {
 
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
+  const token = useSelector(state => state.auth.token);
 
   const validate = () => {
     const newErrors = {};
@@ -42,19 +43,29 @@ const LoginScreen = ({ setIsLoggedIn }) => {
 
     try {
       if (validate()) {
-        const res = await axios.post(`http://${myLocalHost}:5000/api/auth/login`, {
+        const res = await axios.post(`${BASE_URL}/auth/login`, {
           email: emailOrPhone,
           password: password,
+        }, {
+          headers:
+          {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type": "application/json"
+          }
         });
         dispatch(fetchUser(res.data.token));
+        console.log(res.data);
         await AsyncStorage.setItem("token", res.data.token);
         setIsLoggedIn(true)
       }
     } catch (err) {
-      console.log("from Login", err);
-
+      console.log(err);
+      if (err.response && err.response.data && err.response.data.message) {
+        setErrors({ general: err.response.data.message });
+      } else {
+        setErrors({ general: "An error occurred. Please try again." });
+      }
     }
-
   };
 
   return (

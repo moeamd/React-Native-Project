@@ -1,12 +1,13 @@
 import { View, Text, Image, TouchableOpacity, TextInput, TouchableWithoutFeedback } from 'react-native'
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { styles } from '../styles/HomeScreenStyle'
 import CommentCard from './CommentCard';
 import UserCard from './UserCard';
 import axios from 'axios';
-import { myLocalHost } from '../localHost';
 import * as Clipboard from 'expo-clipboard';
+import { BASE_URL } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PostCard = ({ post }) => {
 
@@ -22,7 +23,7 @@ const PostCard = ({ post }) => {
         try {
             const token = await AsyncStorage.getItem("token");
             const response = await axios.post(
-                `http://${myLocalHost}:5000/api/comments/${post.id}`,
+                `${BASE_URL}/comments/${post.id}`,
                 { content: commentText }, // plain JSON body
                 { headers: { Authorization: `Bearer ${token}`, }, }
             );
@@ -46,7 +47,7 @@ const PostCard = ({ post }) => {
             const token = await AsyncStorage.getItem("token");
 
             const response = await axios.put(
-                `http://${myLocalHost}:5000/api/posts/${post._id}`,
+                `${BASE_URL}/posts/${post._id}`,
                 {
                     title: post.title,
                     content: post.content,
@@ -67,7 +68,7 @@ const PostCard = ({ post }) => {
 
     const handleCopyLink = async (postId) => {
         try {
-            const postLink = `http://${myLocalHost}:5000/posts/${postId}`;
+            const postLink = `${BASE_URL}/posts/${postId}`;
             await Clipboard.setStringAsync(postLink);
             Alert.alert("Link Copied", "The post link has been copied to your clipboard!");
         } catch (error) {
@@ -82,7 +83,7 @@ const PostCard = ({ post }) => {
 
             // Send delete request
             const response = await axios.delete(
-                `http://${myLocalHost}:5000/api/posts/${postId}`,
+                `${BASE_URL}/posts/${postId}`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
                 }
@@ -99,15 +100,19 @@ const PostCard = ({ post }) => {
 
     }
 
+    const handleLikePress = () => {
+
+    }
+
     const [comments, setComments] = useState([]);
     const postId = post.id;
     useEffect(() => {
         const fetchData = async () => {
             try {
                 //192.168.11.174
-                console.log('Fetching comments for postId:', post.Id);
+                console.log('Fetching comments for postId:', postId);
                 const token = await AsyncStorage.getItem("token");
-                const response = await axios.get(`http://${myLocalHost}:5000/api/comments/${postId}`, {
+                const response = await axios.get(`${BASE_URL}/comments/${postId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -123,8 +128,8 @@ const PostCard = ({ post }) => {
     }, [postId])
 
     return (
-        <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
-            <View style={[styles.postContainer, { position: 'relative' }]}>
+        <TouchableWithoutFeedback style={{ flex: 1, zIndex: -1, elevation: 1 }} onPress={() => setMenuVisible(false)}>
+            <View style={[styles.postContainer, { position: 'relative' }, { ...StyleSheet.absoluteFillObject }]}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <UserCard props={post} />
                     <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>

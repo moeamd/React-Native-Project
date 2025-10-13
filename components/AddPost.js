@@ -5,7 +5,8 @@ import { styles } from '../styles/HomeScreenStyle'
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import { myLocalHost } from '../localHost';
+import { BASE_URL } from "../config";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AddPost = () => {
 
@@ -45,20 +46,23 @@ const AddPost = () => {
 
         if (image) {
             formData.append('image', {
-                uri: image.uri,
+                uri: image.uri|| null,
                 name: image.fileName || "photo.jpg",
                 type: image.type || "image/jpeg",
             });
+        }else{
+            formData.append('image', null);
         }
 
-        console.log("Image URI: ", image.uri); // Check if the image URI is valid
-        console.log("FormData content: ", formData);
-
-
         try {
+
             const token = await AsyncStorage.getItem("token");
-            const response = await axios.post(`http://${myLocalHost}:5000/api/posts`, formData, {
-                headers: {Authorization: `Bearer ${token}`},
+
+            const response = await axios.post(`${BASE_URL}/posts`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+
             });
 
             console.log('✅ Post submitted:', response.data);

@@ -56,7 +56,9 @@ export const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 8,
-        padding: 15
+        padding: 15,
+        zIndex: -1,
+        elevation: 0
     },
     postHeader: {
         flexDirection: 'row',
@@ -125,18 +127,39 @@ export const styles = StyleSheet.create({
         marginBottom: 4
     },
     menuDropDown: {
-        position: 'absolute',
-        top: 45, // adjust based on icon size
+        position: 'absolute', // Required for zIndex to work
+        top: 50,               // Or 45, based on your need
         right: 0,
         width: 100,
         backgroundColor: 'white',
         borderRadius: 8,
-        elevation: 5,
         borderWidth: 1,
         borderColor: '#ccc',
         padding: 10,
-        zIndex: 50
+        zIndex: 9999,         // Ensure it's above other components
+        elevation: 10,        // Important for Android in RN
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'transparent',
+        justifyContent: 'flex-start',
+        alignItems: 'flex-end',
+        paddingTop: 40, // adjust for where menu should drop
+        paddingRight: 10,
+    },
+
+    menuDropDown: {
+        width: 120,
+        backgroundColor: 'white',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 10,
+        zIndex: 9999,
+        elevation: 20,
     }
+
+
 });
 
 
