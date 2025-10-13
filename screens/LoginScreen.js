@@ -57,9 +57,6 @@ const LoginScreen = ({ setIsLoggedIn }) => {
         console.log(res.data);
         await AsyncStorage.setItem("token", res.data.token);
         setIsLoggedIn(true)
-        navigation.replace("Main", {
-            screen: "Home"
-            });
       }
     } catch (err) {
       console.log(err);
